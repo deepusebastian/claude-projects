@@ -1,0 +1,47 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String      @id @default(cuid())
+  name           String?
+  email          String      @unique
+  hashedPassword String?
+  image          String?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  blueprints     Blueprint[]
+  payments       Payment[]
+  freeBlueprintUsed Boolean  @default(false)
+}
+
+model Blueprint {
+  id        String   @id @default(cuid())
+  title     String
+  prompt    String
+  scenario  String
+  pipeline  String   // JSON string of the pipeline data
+  status    String   @default("completed") // completed | draft
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Payment {
+  id              String   @id @default(cuid())
+  stripePaymentId String?  @unique
+  amount          Int      // in cents
+  status          String   @default("pending") // pending | succeeded | failed
+  createdAt       DateTime @default(now())
+
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
