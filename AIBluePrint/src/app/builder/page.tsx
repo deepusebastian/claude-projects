@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { Suspense, useState, useRef, useEffect, useCallback } from "react";
 import { Send, Lock, CheckCircle, XCircle } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -22,7 +22,7 @@ interface Message {
   isLocked?: boolean;
 }
 
-export default function BuilderPage() {
+function BuilderContent() {
   const { data: session } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -248,5 +248,21 @@ export default function BuilderPage() {
         </Button>
       </div>
     </div>
+  );
+}
+
+function BuilderFallback() {
+  return (
+    <div className="min-h-screen flex flex-col pt-[76px] pb-6 px-6 max-w-[860px] mx-auto items-center justify-center text-gray-400 text-sm">
+      Loading builder…
+    </div>
+  );
+}
+
+export default function BuilderPage() {
+  return (
+    <Suspense fallback={<BuilderFallback />}>
+      <BuilderContent />
+    </Suspense>
   );
 }
