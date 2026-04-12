@@ -3,7 +3,29 @@ import { stripe } from "@/lib/stripe";
 import { prisma } from "@/lib/db";
 import Stripe from "stripe";
 
+function isWebhookSecretConfigured(
+  secret: string | undefined
+): secret is string {
+  return (
+    typeof secret === "string" &&
+    secret.startsWith("whsec_") &&
+    !secret.includes("your_webhook") &&
+    !secret.includes("your_test_webhook")
+  );
+}
+
 export async function POST(request: Request) {
+  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+  if (!isWebhookSecretConfigured(webhookSecret)) {
+    console.error(
+      "Stripe webhook: set STRIPE_WEBHOOK_SECRET (e.g. from `npm run stripe:listen`)"
+    );
+    return NextResponse.json(
+      { error: "Webhook signing secret not configured" },
+      { status: 503 }
+    );
+  }
+
   const body = await request.text();
   const signature = request.headers.get("stripe-signature") as string;
 
@@ -13,7 +35,7 @@ export async function POST(request: Request) {
     event = stripe.webhooks.constructEvent(
       body,
       signature,
-      process.env.STRIPE_WEBHOOK_SECRET!
+      webhookSecret
     );
   } catch (err: any) {
     console.error("Webhook signature verification failed:", err.message);
