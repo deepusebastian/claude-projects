@@ -1,6 +1,10 @@
 import Stripe from "stripe";
 
-export const BLUEPRINT_PRICE_CENTS = 299; // $2.99
+// Pro subscription — $9.99/month for unlimited AI blueprints
+export const PRO_MONTHLY_PRICE_CENTS = 999;
+
+// Kept for back-compat; any existing references default to the Pro price.
+export const BLUEPRINT_PRICE_CENTS = PRO_MONTHLY_PRICE_CENTS;
 
 // Lazy-initialize Stripe so the dev server doesn't crash when the key isn't set.
 // Call getStripe() inside route handlers rather than at module import time.

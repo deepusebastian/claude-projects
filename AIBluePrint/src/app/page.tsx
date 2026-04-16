@@ -23,8 +23,8 @@ const features = [
   },
   {
     icon: <Shield size={20} />,
-    title: "Unlock the full blueprint",
-    desc: "Pay $2.99 to reveal step-by-step details, expert reasoning for every tool choice, and export your plan.",
+    title: "Upgrade to Pro for unlimited",
+    desc: "$9.99/month unlocks step-by-step details, expert reasoning, and unlimited blueprints — cancel anytime.",
   },
 ];
 
@@ -54,11 +54,11 @@ const freePlanFeatures = [
 ];
 
 const proPlanFeatures = [
+  "Unlimited AI blueprints",
   "Full step-by-step implementation details",
   "Expert reasoning for every tool choice",
   "Integration tips & code snippets",
   "Save & export as PDF",
-  "Unlimited blueprints at $2.99 each",
   "Priority support",
 ];
 
@@ -82,7 +82,7 @@ export default function LandingPage() {
 
         <p className="text-lg text-gray-500 max-w-[560px] leading-relaxed mb-11">
           Describe your idea. Get an instant AI pipeline with real tool logos —
-          then unlock the full expert breakdown for just $2.99.
+          then upgrade to Pro for unlimited blueprints at $9.99/month.
         </p>
 
         <div className="flex gap-3 flex-wrap justify-center">
@@ -135,8 +135,8 @@ export default function LandingPage() {
           Simple, transparent pricing
         </h2>
         <p className="text-center text-gray-500 mb-14 text-base">
-          Preview every blueprint free. Unlock the full details — implementation
-          steps, expert reasoning, and export — for $2.99.
+          Preview every blueprint free. Upgrade to Pro for unlimited blueprints
+          — implementation steps, expert reasoning, and export.
         </p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           {/* Free Tier */}
@@ -175,12 +175,13 @@ export default function LandingPage() {
             </p>
             <div className="flex items-baseline gap-1 mb-2">
               <span className="text-[44px] font-extrabold text-gray-900">
-                $2.99
+                $9.99
               </span>
-              <span className="text-sm text-gray-400">/ blueprint</span>
+              <span className="text-sm text-gray-400">/ month</span>
             </div>
             <p className="text-sm text-gray-500 mb-7">
-              Full details, reasoning, and export for every blueprint you need.
+              Unlimited blueprints with full details, reasoning, and export.
+              Cancel anytime.
             </p>
             {proPlanFeatures.map((item) => (
               <div

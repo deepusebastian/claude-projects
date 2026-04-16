@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { stripe, BLUEPRINT_PRICE_CENTS } from "@/lib/stripe";
+import { stripe, PRO_MONTHLY_PRICE_CENTS } from "@/lib/stripe";
 import { prisma } from "@/lib/db";
 
-// POST /api/payments/create-checkout — create a Stripe checkout session
+// POST /api/payments/create-checkout — create a Stripe subscription checkout session
 export async function POST() {
   try {
     const session = await getServerSession(authOptions);
@@ -16,7 +16,7 @@ export async function POST() {
     const userId = (session.user as any).id;
     const userEmail = session.user.email || undefined;
 
-    // Create a Stripe checkout session
+    // Create a Stripe subscription checkout session — $9.99/month
     const checkoutSession = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       line_items: [
@@ -24,20 +24,27 @@ export async function POST() {
           price_data: {
             currency: "usd",
             product_data: {
-              name: "AI Blueprint — Pro",
-              description: "Generate one AI pipeline blueprint",
+              name: "AI Blueprint Pro",
+              description:
+                "Unlimited AI pipeline blueprints, full details, and reasoning — $9.99/month.",
             },
-            unit_amount: BLUEPRINT_PRICE_CENTS,
+            unit_amount: PRO_MONTHLY_PRICE_CENTS,
+            recurring: { interval: "month" },
           },
           quantity: 1,
         },
       ],
-      mode: "payment",
+      mode: "subscription",
       success_url: `${process.env.NEXTAUTH_URL}/builder?payment=success`,
       cancel_url: `${process.env.NEXTAUTH_URL}/builder?payment=cancelled`,
       customer_email: userEmail,
       metadata: {
         userId,
+      },
+      subscription_data: {
+        metadata: {
+          userId,
+        },
       },
     });
 
@@ -45,7 +52,7 @@ export async function POST() {
     await prisma.payment.create({
       data: {
         stripePaymentId: checkoutSession.id,
-        amount: BLUEPRINT_PRICE_CENTS,
+        amount: PRO_MONTHLY_PRICE_CENTS,
         status: "pending",
         userId,
       },
@@ -59,7 +66,7 @@ export async function POST() {
         {
           error: "Payments not configured",
           message:
-            "Stripe is not set up yet. Add your STRIPE_SECRET_KEY to .env to enable payments.",
+            "Stripe is not set up yet. Add your STRIPE_SECRET_KEY to your environment variables to enable payments.",
         },
         { status: 503 }
       );

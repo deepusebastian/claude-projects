@@ -29,6 +29,12 @@ export default function PipelineCard({
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
 
+  // When locked, show the first ~half of tools clearly (with detail blurred)
+  // and blur the remaining tools entirely so users get a teaser, not the full list.
+  // For 5 tools: show first 2, tease last 3. For 6: show 3, tease 3. For 4: show 2, tease 2.
+  const visibleCount = Math.max(2, Math.floor(pipeline.steps.length / 2));
+  const totalSteps = pipeline.steps.length;
+
   async function handleSave() {
     if (!session) {
       router.push("/signup");
@@ -76,13 +82,25 @@ export default function PipelineCard({
         {pipeline.steps.map((step, i) => {
           const tool = AI_TOOLS[step.tool];
           const isExpanded = expandedStep === i;
+          // Tools beyond visibleCount are fully blurred when locked
+          const isTeased = isLocked && i >= visibleCount;
 
           return (
             <div key={i}>
               <div className="flex gap-3.5">
                 {/* Left column — logo + connector */}
                 <div className="flex flex-col items-center">
-                  <ToolLogo name={step.tool} size={42} />
+                  {isTeased ? (
+                    <div
+                      className="relative"
+                      style={{ filter: "blur(6px)", userSelect: "none", pointerEvents: "none" }}
+                      aria-hidden="true"
+                    >
+                      <ToolLogo name={step.tool} size={42} />
+                    </div>
+                  ) : (
+                    <ToolLogo name={step.tool} size={42} />
+                  )}
                   {i < pipeline.steps.length - 1 && (
                     <div
                       className="w-0.5 my-1.5 bg-gradient-to-b from-gray-200 to-transparent transition-all duration-200"
@@ -93,64 +111,106 @@ export default function PipelineCard({
 
                 {/* Right column — tool info */}
                 <div className="flex-1 pt-0.5 min-w-0">
-                  {/* Tool name + category — always visible */}
-                  <div className="flex items-center gap-2 mb-0.5 flex-wrap">
-                    <span className="font-bold text-gray-900 text-sm">
-                      {step.tool}
-                    </span>
-                    <span
-                      className="px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide whitespace-nowrap"
-                      style={{
-                        backgroundColor: `${tool?.color}14`,
-                        color: tool?.color,
-                        border: `1px solid ${tool?.color}25`,
-                      }}
-                    >
-                      {tool?.category}
-                    </span>
-                  </div>
-
-                  {/* Role label — always visible */}
-                  <p className="text-xs font-semibold text-brand-500 mb-0.5">
-                    {step.role}
-                  </p>
-
-                  {/* Step detail + reasoning — locked behind paywall */}
-                  {isLocked ? (
-                    <div className="relative mt-1">
-                      {/* Blurred preview */}
-                      <p
-                        className="text-[13px] text-gray-500 leading-relaxed select-none"
-                        style={{ filter: "blur(4px)", userSelect: "none", pointerEvents: "none" }}
+                  {isTeased ? (
+                    /* Entire tool blurred — name, category, role, detail */
+                    <div className="relative">
+                      <div
+                        style={{ filter: "blur(5px)", userSelect: "none", pointerEvents: "none" }}
                         aria-hidden="true"
                       >
-                        {step.detail}
-                      </p>
-                      {/* Lock icon overlay */}
-                      <div className="absolute inset-0 flex items-center gap-1.5">
-                        <Lock size={11} className="text-gray-400 flex-shrink-0" />
-                        <span className="text-[11px] text-gray-400 font-medium">
-                          Unlock to see full details
-                        </span>
+                        <div className="flex items-center gap-2 mb-0.5 flex-wrap">
+                          <span className="font-bold text-gray-900 text-sm">
+                            {step.tool}
+                          </span>
+                          <span
+                            className="px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide whitespace-nowrap"
+                            style={{
+                              backgroundColor: `${tool?.color}14`,
+                              color: tool?.color,
+                              border: `1px solid ${tool?.color}25`,
+                            }}
+                          >
+                            {tool?.category}
+                          </span>
+                        </div>
+                        <p className="text-xs font-semibold text-brand-500 mb-0.5">
+                          {step.role}
+                        </p>
+                        <p className="text-[13px] text-gray-500 leading-relaxed">
+                          {step.detail}
+                        </p>
                       </div>
+                      {/* Only show a single Lock hint on the very first teased tool */}
+                      {i === visibleCount && (
+                        <div className="absolute inset-0 flex items-start pt-1">
+                          <div className="flex items-center gap-1.5 bg-white/80 backdrop-blur-sm px-2.5 py-1 rounded-md border border-gray-200">
+                            <Lock size={11} className="text-gray-500 flex-shrink-0" />
+                            <span className="text-[11px] text-gray-600 font-semibold">
+                              + {totalSteps - visibleCount} more tools — upgrade to reveal
+                            </span>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   ) : (
                     <>
-                      <p className="text-[13px] text-gray-500 leading-relaxed">
-                        {step.detail}
+                      {/* Tool name + category — visible for first half */}
+                      <div className="flex items-center gap-2 mb-0.5 flex-wrap">
+                        <span className="font-bold text-gray-900 text-sm">
+                          {step.tool}
+                        </span>
+                        <span
+                          className="px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide whitespace-nowrap"
+                          style={{
+                            backgroundColor: `${tool?.color}14`,
+                            color: tool?.color,
+                            border: `1px solid ${tool?.color}25`,
+                          }}
+                        >
+                          {tool?.category}
+                        </span>
+                      </div>
+
+                      {/* Role label — always visible for first half */}
+                      <p className="text-xs font-semibold text-brand-500 mb-0.5">
+                        {step.role}
                       </p>
-                      {/* Why this tool — expandable, only when unlocked */}
-                      <button
-                        onClick={() => setExpandedStep(isExpanded ? null : i)}
-                        className="mt-1.5 flex items-center gap-1 text-[11px] font-semibold text-brand-400 hover:text-brand-600 transition-colors"
-                      >
-                        <Lightbulb size={12} />
-                        {isExpanded ? "Hide reasoning" : "Why this tool?"}
-                      </button>
-                      {isExpanded && (
-                        <div className="mt-1.5 px-3 py-2 rounded-lg bg-brand-50 border border-brand-100 text-[12px] text-brand-700 leading-relaxed">
-                          {step.reason}
+
+                      {/* Step detail + reasoning — locked behind paywall */}
+                      {isLocked ? (
+                        <div className="relative mt-1">
+                          <p
+                            className="text-[13px] text-gray-500 leading-relaxed select-none"
+                            style={{ filter: "blur(4px)", userSelect: "none", pointerEvents: "none" }}
+                            aria-hidden="true"
+                          >
+                            {step.detail}
+                          </p>
+                          <div className="absolute inset-0 flex items-center gap-1.5">
+                            <Lock size={11} className="text-gray-400 flex-shrink-0" />
+                            <span className="text-[11px] text-gray-400 font-medium">
+                              Unlock to see full details
+                            </span>
+                          </div>
                         </div>
+                      ) : (
+                        <>
+                          <p className="text-[13px] text-gray-500 leading-relaxed">
+                            {step.detail}
+                          </p>
+                          <button
+                            onClick={() => setExpandedStep(isExpanded ? null : i)}
+                            className="mt-1.5 flex items-center gap-1 text-[11px] font-semibold text-brand-400 hover:text-brand-600 transition-colors"
+                          >
+                            <Lightbulb size={12} />
+                            {isExpanded ? "Hide reasoning" : "Why this tool?"}
+                          </button>
+                          {isExpanded && (
+                            <div className="mt-1.5 px-3 py-2 rounded-lg bg-brand-50 border border-brand-100 text-[12px] text-brand-700 leading-relaxed">
+                              {step.reason}
+                            </div>
+                          )}
+                        </>
                       )}
                     </>
                   )}
@@ -175,7 +235,7 @@ export default function PipelineCard({
             <div className="absolute inset-0 flex items-center gap-1.5">
               <Lock size={11} className="text-gray-400 flex-shrink-0" />
               <span className="text-[11px] text-gray-400 font-medium">
-                Full blueprint summary unlocked after purchase
+                Full blueprint summary unlocked after upgrade
               </span>
             </div>
           </div>
@@ -195,8 +255,8 @@ export default function PipelineCard({
                 Unlock your full AI blueprint
               </p>
               <p className="text-xs text-gray-500 leading-relaxed">
-                See exactly how to use each tool, why it was chosen, and get
-                step-by-step integration guidance.
+                See all {totalSteps} tools, expert reasoning, and step-by-step
+                integration guidance.
               </p>
             </div>
             <Button
@@ -204,13 +264,13 @@ export default function PipelineCard({
               onClick={onUnlock}
               style={{ whiteSpace: "nowrap", flexShrink: 0 }}
             >
-              <Sparkles size={14} /> Unlock — $2.99
+              <Sparkles size={14} /> Upgrade to Pro
             </Button>
           </div>
 
           {/* Trust signals */}
           <div className="flex items-center gap-4 mt-3 pt-3 border-t border-brand-100">
-            {["One-time payment", "Instant access", "Save & export included"].map((t) => (
+            {["Unlimited blueprints", "$9.99/month", "Cancel anytime"].map((t) => (
               <span key={t} className="flex items-center gap-1 text-[11px] text-gray-400 font-medium">
                 <Check size={10} className="text-brand-400" /> {t}
               </span>

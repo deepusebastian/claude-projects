@@ -36,3 +36,9 @@ next-env.d.ts
 # prisma
 prisma/dev.db
 prisma/dev.db-journal
+
+/node_modules
+
+# local-only (credentials / notes)
+neon-details.txt
+stripe_backup_code.txt

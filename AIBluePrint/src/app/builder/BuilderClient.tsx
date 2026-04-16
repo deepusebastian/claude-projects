@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Send, Lock, CheckCircle, XCircle } from "lucide-react";
+import { Send, Lock, CheckCircle, XCircle, Sparkles } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Button from "@/components/Button";
@@ -22,44 +22,79 @@ interface Message {
   isLocked?: boolean;
 }
 
+const LS_MESSAGES_KEY = "ai-blueprint-messages";
+const LS_UNLOCKED_KEY = "ai-blueprint-unlocked";
+const LS_PRO_KEY = "ai-blueprint-pro";
+
+const INITIAL_MESSAGES: Message[] = [
+  {
+    role: "assistant",
+    type: "text",
+    content:
+      "Welcome to AI Blueprint! Describe your idea, business, or problem — and I'll map out the perfect AI tool pipeline for you.",
+  },
+];
+
 export default function BuilderClient() {
   useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      role: "assistant",
-      type: "text",
-      content:
-        "Welcome to AI Blueprint! Describe your idea, business, or problem — and I'll map out the perfect AI tool pipeline for you.",
-    },
-  ]);
+  const [messages, setMessages] = useState<Message[]>(INITIAL_MESSAGES);
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [showPaywall, setShowPaywall] = useState(false);
   const [paymentBanner, setPaymentBanner] = useState<"success" | "cancelled" | null>(null);
-
   const [unlockedCount, setUnlockedCount] = useState(0);
+  const [isPro, setIsPro] = useState(false);
+  const [hydrated, setHydrated] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
+  // ─── Hydrate state from localStorage on mount ──────────────────────────────
   useEffect(() => {
-    const stored = localStorage.getItem("ai-blueprint-unlocked");
-    if (stored) setUnlockedCount(parseInt(stored, 10));
+    try {
+      const storedMessages = localStorage.getItem(LS_MESSAGES_KEY);
+      if (storedMessages) {
+        const parsed = JSON.parse(storedMessages) as Message[];
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setMessages(parsed);
+        }
+      }
+      const storedUnlocked = localStorage.getItem(LS_UNLOCKED_KEY);
+      if (storedUnlocked) setUnlockedCount(parseInt(storedUnlocked, 10));
+      const storedPro = localStorage.getItem(LS_PRO_KEY);
+      if (storedPro === "true") setIsPro(true);
+    } catch {
+      // ignore corrupt localStorage
+    }
+    setHydrated(true);
   }, []);
 
+  // ─── Persist messages to localStorage whenever they change ─────────────────
   useEffect(() => {
+    if (!hydrated) return;
+    try {
+      localStorage.setItem(LS_MESSAGES_KEY, JSON.stringify(messages));
+    } catch {
+      // ignore quota / serialization errors
+    }
+  }, [messages, hydrated]);
+
+  // ─── Handle payment redirect ───────────────────────────────────────────────
+  useEffect(() => {
+    if (!hydrated) return;
     const status = searchParams.get("payment");
     if (status === "success") {
-      setPaymentBanner("success");
-      router.replace("/builder");
+      // Mark user as Pro, unlock every existing pipeline message
+      setIsPro(true);
+      localStorage.setItem(LS_PRO_KEY, "true");
       setMessages((prev) =>
-        prev.map((msg, i) =>
-          i === prev.length - 1 && msg.type === "pipeline"
-            ? { ...msg, isLocked: false }
-            : msg
+        prev.map((msg) =>
+          msg.type === "pipeline" ? { ...msg, isLocked: false } : msg
         )
       );
+      setPaymentBanner("success");
+      router.replace("/builder");
     } else if (status === "cancelled") {
       setPaymentBanner("cancelled");
       router.replace("/builder");
@@ -68,16 +103,25 @@ export default function BuilderClient() {
       const t = setTimeout(() => setPaymentBanner(null), 6000);
       return () => clearTimeout(t);
     }
-  }, [searchParams, router]);
+  }, [searchParams, router, hydrated]);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isTyping]);
 
-  const hasFreeUnlock = unlockedCount === 0;
+  const hasFreeUnlock = unlockedCount === 0 && !isPro;
 
   const handleUnlock = useCallback(
     (messageIndex: number) => {
+      // Pro users — everything is already unlocked but guard just in case
+      if (isPro) {
+        setMessages((prev) =>
+          prev.map((msg, i) =>
+            i === messageIndex ? { ...msg, isLocked: false } : msg
+          )
+        );
+        return;
+      }
       if (hasFreeUnlock) {
         setMessages((prev) =>
           prev.map((msg, i) =>
@@ -86,12 +130,12 @@ export default function BuilderClient() {
         );
         const newCount = unlockedCount + 1;
         setUnlockedCount(newCount);
-        localStorage.setItem("ai-blueprint-unlocked", String(newCount));
+        localStorage.setItem(LS_UNLOCKED_KEY, String(newCount));
       } else {
         setShowPaywall(true);
       }
     },
-    [hasFreeUnlock, unlockedCount]
+    [hasFreeUnlock, unlockedCount, isPro]
   );
 
   function handleSend() {
@@ -115,11 +159,17 @@ export default function BuilderClient() {
           role: "assistant",
           type: "pipeline",
           content: pipeline,
-          isLocked: true,
+          // Pro users get everything unlocked by default
+          isLocked: !isPro,
         },
       ]);
       setIsTyping(false);
     }, 2200);
+  }
+
+  function handleNewBlueprint() {
+    setMessages(INITIAL_MESSAGES);
+    // No need to clear unlocked/Pro — those persist across new blueprints
   }
 
   return (
@@ -129,14 +179,15 @@ export default function BuilderClient() {
       {paymentBanner === "success" && (
         <div className="flex items-center gap-2.5 px-4 py-3 mb-4 rounded-xl bg-green-50 border border-green-200 text-green-700 text-sm font-medium">
           <CheckCircle size={16} className="flex-shrink-0" />
-          Payment successful! Your full blueprint is now unlocked.
+          You&apos;re now Pro! Your blueprint is fully unlocked and all future
+          blueprints will be too.
           <button onClick={() => setPaymentBanner(null)} className="ml-auto text-green-500 hover:text-green-700">✕</button>
         </div>
       )}
       {paymentBanner === "cancelled" && (
         <div className="flex items-center gap-2.5 px-4 py-3 mb-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-700 text-sm font-medium">
           <XCircle size={16} className="flex-shrink-0" />
-          Payment was cancelled. You can still unlock your first blueprint free.
+          Checkout cancelled. You can still unlock your first blueprint free.
           <button onClick={() => setPaymentBanner(null)} className="ml-auto text-amber-500 hover:text-amber-700">✕</button>
         </div>
       )}
@@ -148,7 +199,12 @@ export default function BuilderClient() {
         <p className="text-sm text-gray-400">
           Describe your idea and get an instant AI tool blueprint
         </p>
-        {hasFreeUnlock ? (
+        {isPro ? (
+          <div className="inline-flex items-center gap-1.5 mt-3 px-3 py-1 rounded-full bg-gradient-to-br from-brand-500 to-blue-500 text-white text-xs font-semibold">
+            <Sparkles size={12} />
+            Pro — Unlimited blueprints
+          </div>
+        ) : hasFreeUnlock ? (
           <div className="inline-flex items-center gap-1.5 mt-3 px-3 py-1 rounded-full bg-green-50 text-green-600 text-xs font-medium border border-green-200">
             <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
             First blueprint unlock is free
@@ -156,7 +212,17 @@ export default function BuilderClient() {
         ) : (
           <div className="inline-flex items-center gap-1.5 mt-3 px-3 py-1 rounded-full bg-amber-50 text-amber-600 text-xs font-medium border border-amber-200">
             <Lock size={12} />
-            Free unlock used — $2.99 per additional blueprint
+            Free unlock used — upgrade to Pro for unlimited
+          </div>
+        )}
+        {messages.length > 1 && (
+          <div className="mt-3">
+            <button
+              onClick={handleNewBlueprint}
+              className="text-xs font-medium text-gray-400 hover:text-brand-500 underline transition-colors"
+            >
+              Start a new blueprint
+            </button>
           </div>
         )}
       </div>

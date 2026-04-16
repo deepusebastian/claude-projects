@@ -1,8 +1,9 @@
 "use client";
 
-import { X, Sparkles, Check, ArrowRight } from "lucide-react";
+import { X, Sparkles, Check, ArrowRight, AlertCircle } from "lucide-react";
 import Button from "./Button";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 interface PaywallModalProps {
   isOpen: boolean;
@@ -11,22 +12,32 @@ interface PaywallModalProps {
 
 export default function PaywallModal({ isOpen, onClose }: PaywallModalProps) {
   const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
   async function handleUpgrade() {
+    setError(null);
+    setLoading(true);
     try {
       const res = await fetch("/api/payments/create-checkout", {
         method: "POST",
       });
-      const data = await res.json();
+
+      // Attempt to parse JSON, but don't fail the whole flow if it's not JSON
+      let data: any = {};
+      try {
+        data = await res.json();
+      } catch {
+        // ignore
+      }
 
       if (res.status === 503) {
-        // Stripe not configured — friendly dev-mode message
-        alert(
-          "Payments are not yet configured.\n\nTo enable Stripe checkout:\n1. Create a Stripe account at stripe.com\n2. Copy your secret key to STRIPE_SECRET_KEY in .env\n3. Restart the dev server"
+        setError(
+          "Payments aren't configured yet. Please contact support — Stripe keys haven't been set up on the server."
         );
-        onClose();
+        setLoading(false);
         return;
       }
 
@@ -36,11 +47,26 @@ export default function PaywallModal({ isOpen, onClose }: PaywallModalProps) {
         return;
       }
 
+      if (!res.ok) {
+        setError(
+          data?.message ||
+            data?.error ||
+            "Something went wrong starting checkout. Please try again."
+        );
+        setLoading(false);
+        return;
+      }
+
       if (data.url) {
         window.location.href = data.url;
+        return; // don't reset loading — page is navigating
       }
+
+      setError("Checkout URL not returned. Please try again.");
+      setLoading(false);
     } catch {
-      alert("Network error. Please try again.");
+      setError("Network error. Please check your connection and try again.");
+      setLoading(false);
     }
   }
 
@@ -69,20 +95,23 @@ export default function PaywallModal({ isOpen, onClose }: PaywallModalProps) {
 
         {/* Content */}
         <h2 className="text-xl font-bold text-gray-900 text-center mb-2">
-          You&apos;ve used your free blueprint
+          Upgrade to AI Blueprint Pro
         </h2>
         <p className="text-sm text-gray-500 text-center mb-6 leading-relaxed">
-          Your first AI blueprint was on us. Unlock unlimited blueprints for just
-          <span className="font-bold text-gray-900"> $2.99 each</span>.
+          Unlock{" "}
+          <span className="font-bold text-gray-900">unlimited AI blueprints</span>{" "}
+          and the full expert breakdown for just{" "}
+          <span className="font-bold text-gray-900">$9.99/month</span>. Cancel
+          anytime.
         </p>
 
         {/* Features */}
         <div className="bg-gray-50 rounded-xl p-4 mb-6 space-y-2.5">
           {[
             "Unlimited AI blueprints",
-            "Advanced pipeline customization",
-            "Integration code snippets",
-            "Save & version your blueprints",
+            "Full step-by-step implementation details",
+            "Expert reasoning for every tool choice",
+            "Save & export every blueprint as PDF",
             "Priority AI model access",
           ].map((feature) => (
             <div
@@ -95,17 +124,35 @@ export default function PaywallModal({ isOpen, onClose }: PaywallModalProps) {
           ))}
         </div>
 
+        {/* Error banner */}
+        {error && (
+          <div className="flex items-start gap-2 px-3 py-2.5 mb-4 rounded-lg bg-red-50 border border-red-200 text-red-700 text-[13px]">
+            <AlertCircle size={14} className="mt-0.5 flex-shrink-0" />
+            <span>{error}</span>
+          </div>
+        )}
+
         {/* CTA */}
         <Button
           className="w-full justify-center"
           size="lg"
           onClick={handleUpgrade}
+          disabled={loading}
         >
-          Upgrade to Pro — $2.99 <ArrowRight size={16} />
+          {loading ? (
+            <>
+              <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+              Starting checkout…
+            </>
+          ) : (
+            <>
+              Upgrade to Pro — $9.99/month <ArrowRight size={16} />
+            </>
+          )}
         </Button>
 
         <p className="text-center text-[11px] text-gray-400 mt-3">
-          One-time payment per blueprint. Cancel anytime.
+          Recurring monthly subscription. Cancel anytime from your account.
         </p>
       </div>
     </div>
