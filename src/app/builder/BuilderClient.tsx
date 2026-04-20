@@ -25,6 +25,7 @@ interface Message {
 const LS_MESSAGES_KEY = "ai-blueprint-messages";
 const LS_UNLOCKED_KEY = "ai-blueprint-unlocked";
 const LS_PRO_KEY = "ai-blueprint-pro";
+const LS_USER_KEY  = "ai-blueprint-user";
 
 const INITIAL_MESSAGES: Message[] = [
   {
@@ -36,7 +37,7 @@ const INITIAL_MESSAGES: Message[] = [
 ];
 
 export default function BuilderClient() {
-  useSession();
+  const { data: session, status } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -44,14 +45,32 @@ export default function BuilderClient() {
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [showPaywall, setShowPaywall] = useState(false);
-  const [paymentBanner, setPaymentBanner] = useState<"success" | "cancelled" | null>(null);
+  const [paymentBanner, setPaymentBanner] = useState<"success" | "success-single" | "cancelled" | null>(null);
   const [unlockedCount, setUnlockedCount] = useState(0);
   const [isPro, setIsPro] = useState(false);
   const [hydrated, setHydrated] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
-  // ─── Hydrate state from localStorage on mount ──────────────────────────────
+  // ─── Hydrate state from localStorage — user-scoped ────────────────────────
+  // Wait for the session to resolve before reading localStorage so we can
+  // detect a user change and wipe the previous user's cached messages.
   useEffect(() => {
+    if (status === "loading") return; // session not ready yet
+
+    const currentUserId =
+      (session?.user as any)?.id ?? session?.user?.email ?? "guest";
+    const storedUserId = localStorage.getItem(LS_USER_KEY);
+
+    if (storedUserId && storedUserId !== currentUserId) {
+      // A different user is now active — clear the previous user's cache
+      localStorage.removeItem(LS_MESSAGES_KEY);
+      localStorage.removeItem(LS_UNLOCKED_KEY);
+      localStorage.removeItem(LS_PRO_KEY);
+    }
+
+    // Record the active user so we can detect the next switch
+    localStorage.setItem(LS_USER_KEY, currentUserId);
+
     try {
       const storedMessages = localStorage.getItem(LS_MESSAGES_KEY);
       if (storedMessages) {
@@ -68,7 +87,8 @@ export default function BuilderClient() {
       // ignore corrupt localStorage
     }
     setHydrated(true);
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status]); // re-run only when session resolves (loading → auth/unauth)
 
   // ─── Persist messages to localStorage whenever they change ─────────────────
   useEffect(() => {
@@ -85,15 +105,36 @@ export default function BuilderClient() {
     if (!hydrated) return;
     const status = searchParams.get("payment");
     if (status === "success") {
-      // Mark user as Pro, unlock every existing pipeline message
-      setIsPro(true);
-      localStorage.setItem(LS_PRO_KEY, "true");
-      setMessages((prev) =>
-        prev.map((msg) =>
-          msg.type === "pipeline" ? { ...msg, isLocked: false } : msg
-        )
-      );
-      setPaymentBanner("success");
+      const plan = searchParams.get("plan"); // "single" | "pro"
+
+      if (plan === "pro") {
+        // Pro: mark as Pro, unlock all existing pipelines
+        setIsPro(true);
+        localStorage.setItem(LS_PRO_KEY, "true");
+        setMessages((prev) =>
+          prev.map((msg) =>
+            msg.type === "pipeline" ? { ...msg, isLocked: false } : msg
+          )
+        );
+      } else {
+        // Single blueprint purchase: unlock the most recent locked pipeline only
+        setMessages((prev) => {
+          let unlocked = false;
+          return [...prev].reverse().map((msg) => {
+            if (!unlocked && msg.type === "pipeline" && msg.isLocked) {
+              unlocked = true;
+              return { ...msg, isLocked: false };
+            }
+            return msg;
+          }).reverse();
+        });
+        // Also count it as an unlock so the free slot stays consumed
+        const newCount = unlockedCount + 1;
+        setUnlockedCount(newCount);
+        localStorage.setItem(LS_UNLOCKED_KEY, String(newCount));
+      }
+
+      setPaymentBanner(plan === "pro" ? "success" : "success-single");
       router.replace("/builder");
     } else if (status === "cancelled") {
       setPaymentBanner("cancelled");
@@ -179,8 +220,14 @@ export default function BuilderClient() {
       {paymentBanner === "success" && (
         <div className="flex items-center gap-2.5 px-4 py-3 mb-4 rounded-xl bg-green-50 border border-green-200 text-green-700 text-sm font-medium">
           <CheckCircle size={16} className="flex-shrink-0" />
-          You&apos;re now Pro! Your blueprint is fully unlocked and all future
-          blueprints will be too.
+          You&apos;re now Pro! Your blueprint is fully unlocked and all future blueprints will be too.
+          <button onClick={() => setPaymentBanner(null)} className="ml-auto text-green-500 hover:text-green-700">✕</button>
+        </div>
+      )}
+      {paymentBanner === "success-single" && (
+        <div className="flex items-center gap-2.5 px-4 py-3 mb-4 rounded-xl bg-green-50 border border-green-200 text-green-700 text-sm font-medium">
+          <CheckCircle size={16} className="flex-shrink-0" />
+          Blueprint unlocked! Your $2.99 credit has been applied.
           <button onClick={() => setPaymentBanner(null)} className="ml-auto text-green-500 hover:text-green-700">✕</button>
         </div>
       )}

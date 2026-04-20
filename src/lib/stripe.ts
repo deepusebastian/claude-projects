@@ -3,6 +3,9 @@ import Stripe from "stripe";
 // Pro subscription — $9.99/month for unlimited AI blueprints
 export const PRO_MONTHLY_PRICE_CENTS = 999;
 
+// Single blueprint — $2.99 one-time purchase (1 blueprint credit)
+export const SINGLE_BLUEPRINT_PRICE_CENTS = 299;
+
 // Kept for back-compat; any existing references default to the Pro price.
 export const BLUEPRINT_PRICE_CENTS = PRO_MONTHLY_PRICE_CENTS;
 

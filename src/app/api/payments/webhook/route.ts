@@ -32,52 +32,50 @@ export async function POST(request: Request) {
   let event: Stripe.Event;
 
   try {
-    event = stripe.webhooks.constructEvent(
-      body,
-      signature,
-      webhookSecret
-    );
+    event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
   } catch (err: any) {
     console.error("Webhook signature verification failed:", err.message);
-    return NextResponse.json(
-      { error: "Invalid signature" },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
   }
 
-  // Handle checkout.session.completed
+  // ── checkout.session.completed ─────────────────────────────────────────────
   if (event.type === "checkout.session.completed") {
     const session = event.data.object as Stripe.Checkout.Session;
     const userId = session.metadata?.userId;
+    const paymentType = session.metadata?.paymentType; // "single" | "pro"
 
     if (userId) {
-      // Update payment status
+      // Mark the payment record as succeeded
       await prisma.payment.updateMany({
-        where: {
-          stripePaymentId: session.id,
-          userId,
-        },
-        data: {
-          status: "succeeded",
-        },
+        where: { stripePaymentId: session.id, userId },
+        data: { status: "succeeded" },
       });
+
+      if (paymentType === "single") {
+        // Grant 1 blueprint credit
+        await prisma.user.update({
+          where: { id: userId },
+          data: { blueprintCredits: { increment: 1 } },
+        });
+      } else {
+        // Pro subscription — mark user as Pro
+        await prisma.user.update({
+          where: { id: userId },
+          data: { isPro: true },
+        });
+      }
     }
   }
 
-  // Handle payment failures
+  // ── checkout.session.expired ───────────────────────────────────────────────
   if (event.type === "checkout.session.expired") {
     const session = event.data.object as Stripe.Checkout.Session;
     const userId = session.metadata?.userId;
 
     if (userId) {
       await prisma.payment.updateMany({
-        where: {
-          stripePaymentId: session.id,
-          userId,
-        },
-        data: {
-          status: "failed",
-        },
+        where: { stripePaymentId: session.id, userId },
+        data: { status: "failed" },
       });
     }
   }
