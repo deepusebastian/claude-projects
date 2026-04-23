@@ -48,48 +48,47 @@ export async function POST(request: Request) {
       );
     }
 
-    // Check if user has used their free blueprint
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-    });
+    const user = await prisma.user.findUnique({ where: { id: userId } });
 
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    // Count existing blueprints
-    const blueprintCount = await prisma.blueprint.count({
-      where: { userId },
-    });
+    const blueprintCount = await prisma.blueprint.count({ where: { userId } });
 
-    // First blueprint is free; subsequent ones require payment
-    if (blueprintCount >= 1 && !user.freeBlueprintUsed) {
-      // Mark free blueprint as used
+    // ── Access control ────────────────────────────────────────────────────────
+    //
+    //  Tier 1 — Free: first blueprint is always free (mark freeBlueprintUsed)
+    //  Tier 2 — Single ($2.99): each purchase adds 1 blueprintCredit; consumed here
+    //  Tier 3 — Pro ($9.99/mo): isPro flag, unlimited
+    //
+    // ─────────────────────────────────────────────────────────────────────────
+
+    if (blueprintCount === 0) {
+      // First blueprint is always free — record that the free slot was used
       await prisma.user.update({
         where: { id: userId },
         data: { freeBlueprintUsed: true },
       });
-    } else if (blueprintCount >= 1) {
-      // Check for a recent successful payment
-      const recentPayment = await prisma.payment.findFirst({
-        where: {
-          userId,
-          status: "succeeded",
-        },
-        orderBy: { createdAt: "desc" },
+    } else if (user.isPro) {
+      // Pro users: unlimited, nothing to consume
+    } else if (user.blueprintCredits > 0) {
+      // Single-purchase credit available: consume 1
+      await prisma.user.update({
+        where: { id: userId },
+        data: { blueprintCredits: { decrement: 1 } },
       });
-
-      if (!recentPayment) {
-        return NextResponse.json(
-          {
-            error: "Payment required",
-            message:
-              "Your free blueprint has been used. Please purchase a blueprint for $2.99.",
-            requiresPayment: true,
-          },
-          { status: 402 }
-        );
-      }
+    } else {
+      // No free slot, no credits, not Pro — gate with payment prompt
+      return NextResponse.json(
+        {
+          error: "Payment required",
+          message:
+            "Your free blueprint has been used. Purchase a single blueprint for $2.99 or go unlimited with Pro at $9.99/month.",
+          requiresPayment: true,
+        },
+        { status: 402 }
+      );
     }
 
     const blueprint = await prisma.blueprint.create({

@@ -1,22 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  images: {
-    // Allow external image sources used in ToolLogo
-    remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "cdn.simpleicons.org",
-      },
-      {
-        protocol: "https",
-        hostname: "logo.clearbit.com",
-      },
-      {
-        protocol: "https",
-        hostname: "huggingface.co",
-      },
-    ],
-  },
+  // simple-icons is ESM-only; tell Next.js to transpile it for the client bundle
+  transpilePackages: ["simple-icons"],
 };
 
 module.exports = nextConfig;

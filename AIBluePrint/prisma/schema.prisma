@@ -17,9 +17,11 @@ model User {
   createdAt      DateTime    @default(now())
   updatedAt      DateTime    @updatedAt
 
-  blueprints     Blueprint[]
-  payments       Payment[]
-  freeBlueprintUsed Boolean  @default(false)
+  blueprints        Blueprint[]
+  payments          Payment[]
+  freeBlueprintUsed Boolean   @default(false)
+  blueprintCredits  Int       @default(0)
+  isPro             Boolean   @default(false)
 }
 
 model Blueprint {
@@ -41,6 +43,7 @@ model Payment {
   stripePaymentId String?  @unique
   amount          Int      // in cents
   status          String   @default("pending") // pending | succeeded | failed
+  paymentType     String   @default("pro")     // "single" | "pro"
   createdAt       DateTime @default(now())
 
   userId          String

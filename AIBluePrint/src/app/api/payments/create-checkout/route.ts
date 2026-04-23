@@ -1,11 +1,14 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { stripe, PRO_MONTHLY_PRICE_CENTS } from "@/lib/stripe";
+import { stripe, PRO_MONTHLY_PRICE_CENTS, SINGLE_BLUEPRINT_PRICE_CENTS } from "@/lib/stripe";
 import { prisma } from "@/lib/db";
 
-// POST /api/payments/create-checkout — create a Stripe subscription checkout session
-export async function POST() {
+// POST /api/payments/create-checkout
+// Body: { plan: "single" | "pro" }
+//   single → $2.99 one-time payment, grants 1 blueprint credit
+//   pro    → $9.99/month subscription, unlimited blueprints
+export async function POST(request: Request) {
   try {
     const session = await getServerSession(authOptions);
 
@@ -15,52 +18,84 @@ export async function POST() {
 
     const userId = (session.user as any).id;
     const userEmail = session.user.email || undefined;
+    const body = await request.json().catch(() => ({}));
+    const plan: "single" | "pro" = body.plan === "single" ? "single" : "pro";
 
-    // Create a Stripe subscription checkout session — $9.99/month
-    const checkoutSession = await stripe.checkout.sessions.create({
-      payment_method_types: ["card"],
-      line_items: [
-        {
-          price_data: {
-            currency: "usd",
-            product_data: {
-              name: "AI Blueprint Pro",
-              description:
-                "Unlimited AI pipeline blueprints, full details, and reasoning — $9.99/month.",
+    let checkoutSession;
+
+    if (plan === "single") {
+      // ── One-time $2.99 payment ──────────────────────────────────────────────
+      checkoutSession = await stripe.checkout.sessions.create({
+        payment_method_types: ["card"],
+        line_items: [
+          {
+            price_data: {
+              currency: "usd",
+              product_data: {
+                name: "AI Blueprint — Single Blueprint",
+                description:
+                  "One full blueprint unlock: step-by-step details and expert reasoning for every tool.",
+              },
+              unit_amount: SINGLE_BLUEPRINT_PRICE_CENTS,
             },
-            unit_amount: PRO_MONTHLY_PRICE_CENTS,
-            recurring: { interval: "month" },
+            quantity: 1,
           },
-          quantity: 1,
-        },
-      ],
-      mode: "subscription",
-      success_url: `${process.env.NEXTAUTH_URL}/builder?payment=success`,
-      cancel_url: `${process.env.NEXTAUTH_URL}/builder?payment=cancelled`,
-      customer_email: userEmail,
-      metadata: {
-        userId,
-      },
-      subscription_data: {
+        ],
+        mode: "payment",
+        success_url: `${process.env.NEXTAUTH_URL}/builder?payment=success&plan=single`,
+        cancel_url: `${process.env.NEXTAUTH_URL}/builder?payment=cancelled`,
+        customer_email: userEmail,
         metadata: {
           userId,
+          paymentType: "single",
         },
-      },
-    });
+      });
+    } else {
+      // ── $9.99/month subscription ────────────────────────────────────────────
+      checkoutSession = await stripe.checkout.sessions.create({
+        payment_method_types: ["card"],
+        line_items: [
+          {
+            price_data: {
+              currency: "usd",
+              product_data: {
+                name: "AI Blueprint Pro",
+                description:
+                  "Unlimited AI pipeline blueprints, full details, and reasoning — $9.99/month.",
+              },
+              unit_amount: PRO_MONTHLY_PRICE_CENTS,
+              recurring: { interval: "month" },
+            },
+            quantity: 1,
+          },
+        ],
+        mode: "subscription",
+        success_url: `${process.env.NEXTAUTH_URL}/builder?payment=success&plan=pro`,
+        cancel_url: `${process.env.NEXTAUTH_URL}/builder?payment=cancelled`,
+        customer_email: userEmail,
+        metadata: {
+          userId,
+          paymentType: "pro",
+        },
+        subscription_data: {
+          metadata: { userId, paymentType: "pro" },
+        },
+      });
+    }
 
     // Record the pending payment
     await prisma.payment.create({
       data: {
         stripePaymentId: checkoutSession.id,
-        amount: PRO_MONTHLY_PRICE_CENTS,
+        amount: plan === "single" ? SINGLE_BLUEPRINT_PRICE_CENTS : PRO_MONTHLY_PRICE_CENTS,
         status: "pending",
+        paymentType: plan,
         userId,
       },
     });
 
     return NextResponse.json({ url: checkoutSession.url });
   } catch (error: any) {
-    // Provide a helpful message when Stripe isn't configured
     if (error?.message?.includes("STRIPE_SECRET_KEY is not configured")) {
       return NextResponse.json(
         {
