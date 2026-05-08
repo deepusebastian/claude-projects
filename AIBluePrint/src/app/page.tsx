@@ -1,284 +1,143 @@
 import Link from "next/link";
-import {
-  Sparkles,
-  Zap,
-  Shield,
-  ArrowRight,
-  Check,
-} from "lucide-react";
+import { ArrowRight, Sparkles, Zap, Newspaper } from "lucide-react";
 import Button from "@/components/Button";
-import ToolLogo from "@/components/ToolLogo";
-import { FEATURED_TOOLS } from "@/data/ai-tools";
-
-const features = [
-  {
-    icon: <Sparkles size={20} />,
-    title: "Describe your idea",
-    desc: "Type what you want to build in plain English. Our AI instantly identifies your use case and selects the best tools.",
-  },
-  {
-    icon: <Zap size={20} />,
-    title: "See your tool stack — free",
-    desc: "Instantly see which AI tools make up your pipeline, their categories, and roles. No credit card required.",
-  },
-  {
-    icon: <Shield size={20} />,
-    title: "Upgrade to Pro for unlimited",
-    desc: "$9.99/month unlocks step-by-step details, expert reasoning, and unlimited blueprints — cancel anytime.",
-  },
-];
-
-const testimonials = [
-  {
-    name: "Sarah K.",
-    role: "Startup Founder",
-    text: "AI Blueprint saved me weeks of research. I had a full AI stack mapped out in 5 minutes.",
-  },
-  {
-    name: "Marcus T.",
-    role: "Product Manager",
-    text: "Finally, a tool that helps non-technical people understand which AI tools to use and why.",
-  },
-  {
-    name: "Priya N.",
-    role: "Freelance Creator",
-    text: "I automated my entire content pipeline using the blueprint it generated. Game changer.",
-  },
-];
-
-const freePlanFeatures = [
-  "Unlimited blueprint previews",
-  "See all tools + categories",
-  "See each tool's role in your pipeline",
-  "1 free full unlock included",
-];
-
-const singlePlanFeatures = [
-  "1 full blueprint unlock",
-  "Step-by-step implementation details",
-  "Expert reasoning for every tool",
-  "Save & export as PDF",
-];
-
-const proPlanFeatures = [
-  "Unlimited AI blueprints",
-  "Full step-by-step implementation details",
-  "Expert reasoning for every tool choice",
-  "Save & export as PDF",
-  "Priority support",
-];
+import NewsFeed from "@/components/NewsFeed";
 
 export default function LandingPage() {
   return (
-    <div>
+    <div className="pt-[60px]">
       {/* ─── Hero ─── */}
-      <section className="min-h-screen flex flex-col items-center justify-center text-center px-6 pt-[120px] pb-20 relative overflow-hidden">
-        {/* Background blurs */}
-        <div className="absolute top-[15%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] rounded-full bg-[radial-gradient(circle,rgba(108,60,239,0.06)_0%,transparent_70%)] pointer-events-none" />
-        <div className="absolute top-[65%] right-[20%] translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] rounded-full bg-[radial-gradient(circle,rgba(59,108,239,0.05)_0%,transparent_70%)] pointer-events-none" />
+      <section className="border-b border-gray-100 bg-white">
+        <div className="max-w-6xl mx-auto px-6 py-14 md:py-20">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-brand-50 text-brand-500 text-[12px] font-semibold">
+              <Newspaper size={13} /> AI News &amp; Tools
+            </div>
+          </div>
 
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-brand-50 text-brand-500 text-[13px] font-semibold mb-8">
-          <Sparkles size={14} /> Now in Public Beta
-        </div>
+          <h1 className="text-[clamp(28px,4.5vw,48px)] font-extrabold leading-[1.15] max-w-[620px] text-gray-900 tracking-tight mb-4">
+            Stay ahead of the{" "}
+            <span className="gradient-text">AI revolution</span>
+          </h1>
 
-        <h1 className="text-[clamp(36px,5.5vw,64px)] font-extrabold leading-[1.1] max-w-[750px] mb-6 text-gray-900 tracking-tight">
-          Know exactly which{" "}
-          <span className="gradient-text">AI tools</span> to build with
-        </h1>
+          <p className="text-base md:text-lg text-gray-500 max-w-[520px] leading-relaxed mb-8">
+            The latest AI tools, launches, and updates — curated daily for
+            builders, founders, and the curious.
+          </p>
 
-        <p className="text-lg text-gray-500 max-w-[560px] leading-relaxed mb-11">
-          Describe your idea. Get an instant AI pipeline — then unlock for{" "}
-          <span className="font-semibold text-gray-700">$2.99 per blueprint</span>{" "}
-          or go unlimited with Pro at{" "}
-          <span className="font-semibold text-gray-700">$9.99/month</span>.
-        </p>
-
-        <div className="flex gap-3 flex-wrap justify-center">
-          <Link href="/signup">
-            <Button size="lg">
-              Start Free <ArrowRight size={18} />
-            </Button>
-          </Link>
-          <Link href="/builder">
-            <Button variant="secondary" size="lg">
-              Try the Builder
-            </Button>
-          </Link>
-        </div>
-
-        {/* Floating tool logos */}
-        <div className="flex gap-3.5 mt-[72px] flex-wrap justify-center">
-          {FEATURED_TOOLS.map((name) => (
-            <ToolLogo key={name} name={name} size={44} />
-          ))}
+          <div className="flex gap-3 flex-wrap">
+            <Link href="/builder">
+              <Button size="lg">
+                <Zap size={16} /> Build Your AI Blueprint
+              </Button>
+            </Link>
+            <Link href="/tools">
+              <Button variant="secondary" size="lg">
+                Browse AI Tools <ArrowRight size={16} />
+              </Button>
+            </Link>
+          </div>
         </div>
       </section>
 
-      {/* ─── Features ─── */}
-      <section className="py-20 px-6 max-w-[1060px] mx-auto">
-        <h2 className="text-[32px] font-bold text-center mb-14 text-gray-900">
-          How it works
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-          {features.map((f, i) => (
-            <div
-              key={i}
-              className="bg-white border border-gray-200 rounded-[14px] p-7 shadow-sm hover:shadow-md transition-shadow"
-            >
-              <div className="w-[46px] h-[46px] rounded-[11px] bg-brand-50 flex items-center justify-center text-brand-500 mb-5">
-                {f.icon}
+      {/* ─── Main content: News + Sidebar ─── */}
+      <section className="max-w-6xl mx-auto px-6 py-10 md:py-14">
+        <div className="flex flex-col lg:flex-row gap-10">
+          {/* News feed */}
+          <div className="flex-1 min-w-0">
+            <NewsFeed />
+          </div>
+
+          {/* Sidebar */}
+          <aside className="w-full lg:w-[320px] flex-shrink-0 space-y-6">
+            {/* Blueprint CTA */}
+            <div className="bg-gradient-to-br from-brand-500 to-blue-500 rounded-2xl p-6 text-white">
+              <div className="flex items-center gap-2 mb-3">
+                <Sparkles size={18} />
+                <span className="text-[13px] font-bold uppercase tracking-wide opacity-90">
+                  AI Blueprint
+                </span>
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2.5">
-                {f.title}
+              <h3 className="text-lg font-bold leading-snug mb-2">
+                Turn your idea into an AI-powered pipeline
               </h3>
-              <p className="text-sm text-gray-500 leading-relaxed">{f.desc}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ─── Pricing ─── */}
-      <section className="py-20 px-6 max-w-[1060px] mx-auto">
-        <h2 className="text-[32px] font-bold text-center mb-3 text-gray-900">
-          Simple, transparent pricing
-        </h2>
-        <p className="text-center text-gray-500 mb-14 text-base">
-          Preview every blueprint free. Buy one at a time for $2.99, or go unlimited with Pro at $9.99/month.
-        </p>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-
-          {/* Free Tier */}
-          <div className="bg-white border border-gray-200 rounded-2xl p-8 shadow-sm flex flex-col">
-            <p className="text-[13px] font-bold text-gray-400 uppercase tracking-wide mb-2">
-              Starter
-            </p>
-            <p className="text-[44px] font-extrabold text-gray-900 mb-2">
-              Free
-            </p>
-            <p className="text-sm text-gray-500 mb-7">
-              See your tool stack instantly. First full unlock on us.
-            </p>
-            <div className="flex-1 mb-6">
-              {freePlanFeatures.map((item) => (
-                <div key={item} className="flex items-center gap-2.5 mb-3 text-gray-500 text-sm">
-                  <Check size={15} className="text-gray-400 flex-shrink-0" /> {item}
-                </div>
-              ))}
-            </div>
-            <Link href="/signup">
-              <Button variant="secondary" className="w-full justify-center">
-                Get Started Free
-              </Button>
-            </Link>
-          </div>
-
-          {/* Single Blueprint Tier */}
-          <div className="bg-white border border-amber-300 rounded-2xl p-8 shadow-sm flex flex-col relative">
-            <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-amber-400 px-3.5 py-1 rounded-full text-[12px] font-bold text-white whitespace-nowrap">
-              Pay as you go
-            </div>
-            <div className="flex items-center gap-2 mb-2">
-              <Zap size={14} className="text-amber-500" />
-              <p className="text-[13px] font-bold text-amber-500 uppercase tracking-wide">
-                Single
+              <p className="text-sm opacity-80 leading-relaxed mb-5">
+                Describe what you want to build. Get an instant blueprint of the
+                exact AI tools you need — with step-by-step implementation.
               </p>
+              <Link href="/builder">
+                <button className="w-full bg-white text-brand-600 font-semibold text-sm py-2.5 px-4 rounded-lg hover:bg-gray-50 transition-colors">
+                  Try it free <ArrowRight size={14} className="inline ml-1" />
+                </button>
+              </Link>
             </div>
-            <div className="flex items-baseline gap-1 mb-2">
-              <span className="text-[44px] font-extrabold text-gray-900">$2.99</span>
-            </div>
-            <p className="text-sm text-gray-500 mb-7">
-              One blueprint credit. Perfect for occasional use — buy more anytime.
-            </p>
-            <div className="flex-1 mb-6">
-              {singlePlanFeatures.map((item) => (
-                <div key={item} className="flex items-center gap-2.5 mb-3 text-gray-500 text-sm">
-                  <Check size={15} className="text-amber-500 flex-shrink-0" /> {item}
-                </div>
-              ))}
-            </div>
-            <Link href="/signup">
-              <Button className="w-full justify-center bg-amber-500 hover:bg-amber-600 border-amber-500">
-                Buy a Blueprint
-              </Button>
-            </Link>
-          </div>
 
-          {/* Pro Tier */}
-          <div className="bg-white border-2 border-brand-500 rounded-2xl p-8 relative shadow-[0_4px_20px_rgba(108,60,239,0.12)] flex flex-col">
-            <div className="absolute -top-3 right-6 bg-gradient-to-br from-brand-500 to-blue-500 px-3.5 py-1 rounded-full text-[12px] font-bold text-white">
-              Best value
-            </div>
-            <div className="flex items-center gap-2 mb-2">
-              <Sparkles size={14} className="text-brand-500" />
-              <p className="text-[13px] font-bold text-brand-500 uppercase tracking-wide">
-                Pro
+            {/* Pro plan */}
+            <div className="border border-gray-200 rounded-2xl p-6 bg-white">
+              <p className="text-[12px] font-bold text-brand-500 uppercase tracking-wide mb-2">
+                Pro Plan
               </p>
-            </div>
-            <div className="flex items-baseline gap-1 mb-2">
-              <span className="text-[44px] font-extrabold text-gray-900">$9.99</span>
-              <span className="text-sm text-gray-400">/ month</span>
-            </div>
-            <p className="text-sm text-gray-500 mb-7">
-              Unlimited blueprints with full details, reasoning, and export. Cancel anytime.
-            </p>
-            <div className="flex-1 mb-6">
-              {proPlanFeatures.map((item) => (
-                <div key={item} className="flex items-center gap-2.5 mb-3 text-gray-500 text-sm">
-                  <Check size={15} className="text-brand-500 flex-shrink-0" /> {item}
-                </div>
-              ))}
-            </div>
-            <Link href="/signup">
-              <Button className="w-full justify-center">Start Building</Button>
-            </Link>
-          </div>
-
-        </div>
-      </section>
-
-      {/* ─── Testimonials ─── */}
-      <section className="py-20 px-6 max-w-[1060px] mx-auto">
-        <h2 className="text-[32px] font-bold text-center mb-14 text-gray-900">
-          Loved by builders
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-          {testimonials.map((t, i) => (
-            <div
-              key={i}
-              className="bg-white border border-gray-200 rounded-[14px] p-6 shadow-sm"
-            >
-              <p className="text-sm text-gray-500 leading-relaxed mb-5 italic">
-                &ldquo;{t.text}&rdquo;
+              <div className="flex items-baseline gap-1 mb-2">
+                <span className="text-3xl font-extrabold text-gray-900">
+                  $9.99
+                </span>
+                <span className="text-sm text-gray-400">/ month</span>
+              </div>
+              <p className="text-sm text-gray-500 mb-4">
+                Unlimited AI blueprints with full details and expert reasoning.
               </p>
-              <div className="flex items-center gap-3">
-                <div className="w-[38px] h-[38px] rounded-full bg-gradient-to-br from-brand-500 to-blue-500 flex items-center justify-center text-white font-bold text-[15px]">
-                  {t.name[0]}
-                </div>
-                <div>
-                  <p className="text-sm font-semibold text-gray-900">
-                    {t.name}
-                  </p>
-                  <p className="text-xs text-gray-400">{t.role}</p>
-                </div>
+              <ul className="space-y-2 mb-5">
+                {[
+                  "Unlimited blueprints",
+                  "Step-by-step details",
+                  "Export as PDF",
+                  "Cancel anytime",
+                ].map((f) => (
+                  <li
+                    key={f}
+                    className="text-sm text-gray-500 flex items-center gap-2"
+                  >
+                    <span className="w-1 h-1 rounded-full bg-brand-400" />
+                    {f}
+                  </li>
+                ))}
+              </ul>
+              <Link href="/signup">
+                <Button className="w-full justify-center text-sm" size="sm">
+                  Get Started
+                </Button>
+              </Link>
+            </div>
+
+            {/* Trending tags */}
+            <div className="border border-gray-200 rounded-2xl p-6 bg-white">
+              <p className="text-[12px] font-bold text-gray-400 uppercase tracking-wide mb-3">
+                Trending Topics
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {[
+                  "LLM",
+                  "Agents",
+                  "Image Generation",
+                  "Code",
+                  "Voice AI",
+                  "Open Source",
+                  "Automation",
+                  "Design",
+                  "Video AI",
+                  "Infrastructure",
+                ].map((tag) => (
+                  <span
+                    key={tag}
+                    className="px-2.5 py-1 bg-gray-50 text-gray-500 text-xs font-medium rounded-md border border-gray-100"
+                  >
+                    {tag}
+                  </span>
+                ))}
               </div>
             </div>
-          ))}
+          </aside>
         </div>
-      </section>
-
-      {/* ─── CTA ─── */}
-      <section className="py-20 px-6 text-center bg-gray-50">
-        <h2 className="text-[32px] font-bold text-gray-900 mb-3.5">
-          Ready to build with AI?
-        </h2>
-        <p className="text-base text-gray-500 mb-9 max-w-[480px] mx-auto">
-          First unlock is free. Then pay $2.99 per blueprint or $9.99/month for unlimited — no commitment required.
-        </p>
-        <Link href="/signup">
-          <Button size="lg">
-            Create Your Blueprint <ArrowRight size={18} />
-          </Button>
-        </Link>
       </section>
 
       {/* ─── Footer ─── */}

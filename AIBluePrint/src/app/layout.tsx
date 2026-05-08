@@ -8,22 +8,23 @@ const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://aiblueprint.dev";
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "AI Blueprint — Turn your idea into an AI-powered reality",
+    default: "AI Blueprint — AI Tools News & Pipeline Builder",
     template: "%s | AI Blueprint",
   },
   description:
-    "Describe what you want to build. Get an instant, actionable blueprint of the exact AI tools and pipeline you need to make it happen.",
+    "Stay ahead of the AI revolution. Daily curated AI tool launches, updates, and news — plus an instant pipeline builder for your next idea.",
   keywords: [
     "AI tools",
+    "AI news",
+    "AI tool launches",
     "AI pipeline",
     "AI blueprint",
     "startup tools",
     "AI stack",
     "AI tool recommendations",
-    "AI workflow builder",
     "artificial intelligence tools",
-    "AI tech stack",
-    "machine learning tools",
+    "AI updates",
+    "new AI tools",
   ],
   authors: [{ name: "AI Blueprint" }],
   creator: "AI Blueprint",
@@ -32,9 +33,9 @@ export const metadata: Metadata = {
     locale: "en_US",
     url: siteUrl,
     siteName: "AI Blueprint",
-    title: "AI Blueprint — Turn your idea into an AI-powered reality",
+    title: "AI Blueprint — AI Tools News & Pipeline Builder",
     description:
-      "Describe what you want to build. Get an instant, actionable blueprint of the exact AI tools and pipeline you need to make it happen.",
+      "Stay ahead of the AI revolution. Daily curated AI tool launches, updates, and news — plus an instant pipeline builder for your next idea.",
     images: [
       {
         url: "/og-image.png",

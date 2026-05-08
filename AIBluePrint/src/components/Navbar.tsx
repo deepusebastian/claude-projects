@@ -3,13 +3,40 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
-import { Sparkles, Zap, LayoutDashboard, LogOut, Menu, X, BookOpen } from "lucide-react";
+import {
+  Sparkles,
+  Zap,
+  LayoutDashboard,
+  LogOut,
+  Menu,
+  X,
+  BookOpen,
+  Newspaper,
+} from "lucide-react";
 import { useState } from "react";
 
 export default function Navbar() {
   const pathname = usePathname();
   const { data: session } = useSession();
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  const navLink = (
+    href: string,
+    label: string,
+    icon: React.ReactNode,
+    active: boolean
+  ) => (
+    <Link
+      href={href}
+      className={`flex items-center gap-1.5 px-3 py-2 text-sm font-semibold rounded-lg transition-colors ${
+        active
+          ? "text-brand-500 bg-brand-50"
+          : "text-gray-500 hover:text-brand-500 hover:bg-brand-50"
+      }`}
+    >
+      {icon} {label}
+    </Link>
+  );
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white/85 backdrop-blur-xl border-b border-gray-100">
@@ -26,23 +53,25 @@ export default function Navbar() {
 
         {/* Desktop nav */}
         <div className="hidden md:flex items-center gap-1.5">
-          {/* Tools Directory — always visible */}
-          <Link
-            href="/tools"
-            className={`flex items-center gap-1.5 px-3 py-2 text-sm font-semibold rounded-lg transition-colors ${
-              pathname === "/tools"
-                ? "text-brand-500 bg-brand-50"
-                : "text-gray-500 hover:text-brand-500 hover:bg-brand-50"
-            }`}
-          >
-            <BookOpen size={16} /> AI Tools
-          </Link>
+          {navLink("/", "News", <Newspaper size={16} />, pathname === "/")}
+          {navLink(
+            "/tools",
+            "AI Tools",
+            <BookOpen size={16} />,
+            pathname === "/tools"
+          )}
+          {navLink(
+            "/builder",
+            "Builder",
+            <Zap size={16} />,
+            pathname === "/builder"
+          )}
 
           {!session ? (
             <>
               <Link
                 href="/login"
-                className="px-4 py-2 text-sm font-semibold text-brand-500 hover:text-brand-600 rounded-lg hover:bg-brand-50 transition-colors"
+                className="px-4 py-2 text-sm font-semibold text-brand-500 hover:text-brand-600 rounded-lg hover:bg-brand-50 transition-colors ml-2"
               >
                 Log in
               </Link>
@@ -55,16 +84,6 @@ export default function Navbar() {
             </>
           ) : (
             <>
-              <Link
-                href="/builder"
-                className={`flex items-center gap-1.5 px-3 py-2 text-sm font-semibold rounded-lg transition-colors ${
-                  pathname === "/builder"
-                    ? "text-brand-500 bg-brand-50"
-                    : "text-gray-500 hover:text-brand-500 hover:bg-brand-50"
-                }`}
-              >
-                <Zap size={16} /> Builder
-              </Link>
               <Link
                 href="/dashboard"
                 className={`flex items-center gap-1.5 px-3 py-2 text-sm font-semibold rounded-lg transition-colors ${
@@ -97,13 +116,26 @@ export default function Navbar() {
       {/* Mobile menu */}
       {mobileOpen && (
         <div className="md:hidden bg-white border-t border-gray-100 px-6 py-4 space-y-2 shadow-lg">
-          {/* Tools link — always visible on mobile */}
+          <Link
+            href="/"
+            onClick={() => setMobileOpen(false)}
+            className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-gray-700 rounded-lg hover:bg-gray-50"
+          >
+            <Newspaper size={16} /> News
+          </Link>
           <Link
             href="/tools"
             onClick={() => setMobileOpen(false)}
             className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-gray-700 rounded-lg hover:bg-gray-50"
           >
             <BookOpen size={16} /> AI Tools
+          </Link>
+          <Link
+            href="/builder"
+            onClick={() => setMobileOpen(false)}
+            className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-gray-700 rounded-lg hover:bg-gray-50"
+          >
+            <Zap size={16} /> Builder
           </Link>
 
           {!session ? (
@@ -125,13 +157,6 @@ export default function Navbar() {
             </>
           ) : (
             <>
-              <Link
-                href="/builder"
-                onClick={() => setMobileOpen(false)}
-                className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-gray-700 rounded-lg hover:bg-gray-50"
-              >
-                <Zap size={16} /> Builder
-              </Link>
               <Link
                 href="/dashboard"
                 onClick={() => setMobileOpen(false)}
