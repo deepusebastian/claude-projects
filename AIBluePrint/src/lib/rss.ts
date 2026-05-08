@@ -19,11 +19,18 @@ export interface FeedItem {
   sourceIcon: string;
   category: string;
   tags: string[];
+  image?: string; // thumbnail URL
 }
 
 // ── Default AI / tech feeds ──────────────────────────────────────────────
 
 export const DEFAULT_FEEDS: FeedSource[] = [
+  {
+    name: "Hacker News AI",
+    url: "https://hnrss.org/newest?q=AI+OR+LLM+OR+GPT+OR+Claude&points=50",
+    category: "Industry",
+    icon: "HN",
+  },
   {
     name: "TechCrunch AI",
     url: "https://techcrunch.com/category/artificial-intelligence/feed/",
@@ -61,13 +68,7 @@ export const DEFAULT_FEEDS: FeedSource[] = [
     icon: "MT",
   },
   {
-    name: "Hacker News",
-    url: "https://hnrss.org/newest?q=AI+OR+LLM+OR+GPT+OR+Claude&points=50",
-    category: "Industry",
-    icon: "HN",
-  },
-  {
-    name: "Ars Technica AI",
+    name: "Ars Technica",
     url: "https://feeds.arstechnica.com/arstechnica/features",
     category: "Industry",
     icon: "AT",
@@ -109,12 +110,22 @@ function getAttrValue(xml: string, tag: string, attr: string): string {
 function stripHtml(html: string): string {
   return html
     .replace(/<[^>]*>/g, "")
+    // Decode all numeric HTML entities (&#8216; &#8217; &#8220; etc.)
+    .replace(/&#(\d+);/g, (_, code) => String.fromCharCode(Number(code)))
+    .replace(/&#x([0-9a-fA-F]+);/g, (_, hex) => String.fromCharCode(parseInt(hex, 16)))
     .replace(/&amp;/g, "&")
     .replace(/&lt;/g, "<")
     .replace(/&gt;/g, ">")
     .replace(/&quot;/g, '"')
-    .replace(/&#039;/g, "'")
+    .replace(/&apos;/g, "'")
     .replace(/&nbsp;/g, " ")
+    .replace(/&mdash;/g, "—")
+    .replace(/&ndash;/g, "–")
+    .replace(/&hellip;/g, "…")
+    .replace(/&lsquo;/g, "‘")
+    .replace(/&rsquo;/g, "’")
+    .replace(/&ldquo;/g, "“")
+    .replace(/&rdquo;/g, "”")
     .replace(/\s+/g, " ")
     .trim();
 }
@@ -124,10 +135,48 @@ function truncate(text: string, maxLen: number): string {
   return text.slice(0, maxLen).replace(/\s+\S*$/, "") + "…";
 }
 
+// ── Image extraction ────────────────────────────────────────────────────
+
+function extractImage(block: string): string | undefined {
+  // 1. <media:content url="..."> or <media:thumbnail url="...">
+  let match = block.match(/<media:(?:content|thumbnail)[^>]+url="([^"]+)"/i);
+  if (match?.[1]) return match[1];
+
+  // 2. <enclosure url="..." type="image/...">
+  match = block.match(/<enclosure[^>]+url="([^"]+)"[^>]+type="image\/[^"]*"/i);
+  if (!match) match = block.match(/<enclosure[^>]+type="image\/[^"]*"[^>]+url="([^"]+)"/i);
+  if (match?.[1]) return match[1];
+
+  // 3. <image><url>...</url></image> (less common per-item)
+  const imgUrl = getTagContent(block, "image");
+  if (imgUrl && imgUrl.startsWith("http")) return imgUrl;
+
+  // 4. First <img src="..."> inside description or content:encoded
+  const content = getTagContent(block, "description") || getTagContent(block, "content:encoded") || getTagContent(block, "content");
+  if (content) {
+    match = content.match(/<img[^>]+src="([^"]+)"/i);
+    if (match?.[1]) return match[1];
+  }
+
+  // 5. og:image style — some feeds include it
+  match = block.match(/og:image[^>]*content="([^"]+)"/i);
+  if (match?.[1]) return match[1];
+
+  return undefined;
+}
+
 // ── Parse a single feed ─────────────────────────────────────────────────
 
-function parseRSSItems(xml: string): Array<{ title: string; link: string; summary: string; date: string }> {
-  const items: Array<{ title: string; link: string; summary: string; date: string }> = [];
+interface ParsedItem {
+  title: string;
+  link: string;
+  summary: string;
+  date: string;
+  image?: string;
+}
+
+function parseRSSItems(xml: string): ParsedItem[] {
+  const items: ParsedItem[] = [];
 
   // Try RSS 2.0 <item> blocks
   const rssItems = xml.match(/<item[\s>][\s\S]*?<\/item>/gi) || [];
@@ -139,7 +188,8 @@ function parseRSSItems(xml: string): Array<{ title: string; link: string; summar
       getTagContent(block, "description") || getTagContent(block, "content:encoded")
     );
     const date = getTagContent(block, "pubDate") || getTagContent(block, "dc:date");
-    if (title) items.push({ title, link, summary: truncate(summary, 200), date });
+    const image = extractImage(block);
+    if (title) items.push({ title, link, summary: truncate(summary, 200), date, image });
   }
 
   // Try Atom <entry> blocks
@@ -153,7 +203,8 @@ function parseRSSItems(xml: string): Array<{ title: string; link: string; summar
         getTagContent(block, "summary") || getTagContent(block, "content")
       );
       const date = getTagContent(block, "published") || getTagContent(block, "updated");
-      if (title) items.push({ title, link, summary: truncate(summary, 200), date });
+      const image = extractImage(block);
+      if (title) items.push({ title, link, summary: truncate(summary, 200), date, image });
     }
   }
 
@@ -164,7 +215,7 @@ function parseRSSItems(xml: string): Array<{ title: string; link: string; summar
 
 async function fetchFeed(
   source: FeedSource,
-  timeoutMs = 5000
+  timeoutMs = 8000
 ): Promise<FeedItem[]> {
   try {
     const controller = new AbortController();
@@ -172,14 +223,23 @@ async function fetchFeed(
 
     const res = await fetch(source.url, {
       signal: controller.signal,
-      headers: { "User-Agent": "AIBlueprint/1.0 (RSS reader)" },
-      next: { revalidate: 900 }, // cache 15 min in Next.js
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (compatible; AIBlueprint/1.0; +https://aiblueprint.dev)",
+        Accept: "application/rss+xml, application/xml, text/xml, */*",
+      },
+      cache: "no-store", // avoid Next.js caching issues in dev
     });
     clearTimeout(timer);
 
-    if (!res.ok) return [];
+    if (!res.ok) {
+      console.warn(`[RSS] ${source.name}: HTTP ${res.status}`);
+      return [];
+    }
+
     const xml = await res.text();
     const parsed = parseRSSItems(xml);
+    console.log(`[RSS] ${source.name}: ${parsed.length} items`);
 
     return parsed.map((item) => ({
       title: item.title,
@@ -190,9 +250,10 @@ async function fetchFeed(
       sourceIcon: source.icon || source.name.slice(0, 2),
       category: source.category || "Industry",
       tags: [],
+      image: item.image,
     }));
-  } catch {
-    // Timeout, network error, or parse failure — skip this feed silently
+  } catch (err) {
+    console.warn(`[RSS] ${source.name}: failed -`, (err as Error).message);
     return [];
   }
 }

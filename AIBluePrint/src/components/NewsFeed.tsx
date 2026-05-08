@@ -23,6 +23,7 @@ interface DisplayItem {
   toolColor?: string;
   tags: string[];
   featured?: boolean;
+  image?: string;
 }
 
 const CATEGORY_COLORS: Record<string, string> = {
@@ -58,6 +59,7 @@ function feedItemToDisplay(item: FeedItem, index: number): DisplayItem {
     toolColor: SOURCE_COLORS[item.sourceIcon] || "#6c3cef",
     tags: item.tags,
     featured: false,
+    image: item.image,
   };
 }
 
@@ -194,42 +196,61 @@ export default function NewsFeed() {
               href={item.sourceUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="group block bg-white border border-gray-200 rounded-xl p-5 hover:border-gray-300 hover:shadow-sm transition-all"
+              className="group block bg-white border border-gray-200 rounded-xl overflow-hidden hover:border-gray-300 hover:shadow-sm transition-all"
             >
-              <div className="flex items-start gap-3.5 mb-3">
-                {item.toolLetter && (
-                  <div
-                    className="w-10 h-10 rounded-lg flex items-center justify-center text-white text-sm font-bold flex-shrink-0"
-                    style={{ backgroundColor: item.toolColor || "#6c3cef" }}
-                  >
-                    {item.toolLetter}
-                  </div>
-                )}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <Star size={13} className="text-amber-400 flex-shrink-0" />
-                    <span className="text-[11px] font-semibold text-amber-500 uppercase tracking-wide">
-                      Featured
-                    </span>
-                  </div>
-                  <h3 className="text-base font-semibold text-gray-900 leading-snug group-hover:text-brand-600 transition-colors">
-                    {item.title}
-                  </h3>
+              {/* Image */}
+              {item.image && (
+                <div className="w-full h-40 bg-gray-100 overflow-hidden">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={item.image}
+                    alt=""
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).style.display = "none";
+                    }}
+                  />
                 </div>
-              </div>
-              {item.summary && (
-                <p className="text-sm text-gray-500 leading-relaxed mb-3">
-                  {item.summary}
-                </p>
               )}
-              <div className="flex items-center gap-3 text-xs text-gray-400">
-                <span
-                  className={`px-2 py-0.5 rounded-md border text-[11px] font-medium ${CATEGORY_COLORS[item.category] || ""}`}
-                >
-                  {item.category}
-                </span>
-                <span>{item.source}</span>
-                <span>{getRelativeTime(item.date)}</span>
+              <div className="p-5">
+                <div className="flex items-start gap-3.5 mb-3">
+                  {item.toolLetter && (
+                    <div
+                      className="w-10 h-10 rounded-lg flex items-center justify-center text-white text-sm font-bold flex-shrink-0"
+                      style={{ backgroundColor: item.toolColor || "#6c3cef" }}
+                    >
+                      {item.toolLetter}
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Star
+                        size={13}
+                        className="text-amber-400 flex-shrink-0"
+                      />
+                      <span className="text-[11px] font-semibold text-amber-500 uppercase tracking-wide">
+                        Featured
+                      </span>
+                    </div>
+                    <h3 className="text-base font-semibold text-gray-900 leading-snug group-hover:text-brand-600 transition-colors">
+                      {item.title}
+                    </h3>
+                  </div>
+                </div>
+                {item.summary && (
+                  <p className="text-sm text-gray-500 leading-relaxed mb-3">
+                    {item.summary}
+                  </p>
+                )}
+                <div className="flex items-center gap-3 text-xs text-gray-400">
+                  <span
+                    className={`px-2 py-0.5 rounded-md border text-[11px] font-medium ${CATEGORY_COLORS[item.category] || ""}`}
+                  >
+                    {item.category}
+                  </span>
+                  <span>{item.source}</span>
+                  <span>{getRelativeTime(item.date)}</span>
+                </div>
               </div>
             </a>
           ))}
@@ -247,15 +268,29 @@ export default function NewsFeed() {
               rel="noopener noreferrer"
               className="group flex items-start gap-3.5 py-4 px-3 -mx-3 rounded-lg hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-0"
             >
-              {/* Source icon */}
-              {item.toolLetter && (
+              {/* Thumbnail or source icon */}
+              {item.image ? (
+                <div className="w-20 h-16 rounded-lg bg-gray-100 overflow-hidden flex-shrink-0 mt-0.5">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={item.image}
+                    alt=""
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      const el = e.target as HTMLImageElement;
+                      // Replace broken image with source icon fallback
+                      el.parentElement!.innerHTML = `<div class="w-full h-full flex items-center justify-center text-white text-xs font-bold" style="background:${item.toolColor || "#6c3cef"}">${item.toolLetter || ""}</div>`;
+                    }}
+                  />
+                </div>
+              ) : item.toolLetter ? (
                 <div
                   className="w-9 h-9 rounded-lg flex items-center justify-center text-white text-xs font-bold flex-shrink-0 mt-0.5"
                   style={{ backgroundColor: item.toolColor || "#6c3cef" }}
                 >
                   {item.toolLetter}
                 </div>
-              )}
+              ) : null}
 
               {/* Content */}
               <div className="flex-1 min-w-0">
