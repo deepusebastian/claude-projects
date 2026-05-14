@@ -359,19 +359,19 @@ export default function PipelineCard({
             </p>
           </div>
 
-          {/* Two plan buttons */}
+          {/* Plan buttons — always go to paywall for payment */}
           <div className="flex flex-col sm:flex-row gap-2.5">
             <Button
               variant="secondary"
               size="sm"
-              onClick={onUnlock}
+              onClick={onPaywallNeeded}
               className="flex-1 justify-center"
             >
               <Zap size={14} /> Unlock this one — $2.99
             </Button>
             <Button
               size="sm"
-              onClick={onUnlock}
+              onClick={onPaywallNeeded}
               className="flex-1 justify-center"
             >
               <Sparkles size={14} /> Go Pro — $9.99/mo
