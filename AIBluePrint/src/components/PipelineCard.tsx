@@ -4,7 +4,7 @@ import { Pipeline } from "@/data/pipelines";
 import { AI_TOOLS } from "@/data/ai-tools";
 import ToolLogo from "./ToolLogo";
 import Button from "./Button";
-import { Download, ArrowRight, Lightbulb, Check, Lock, Sparkles } from "lucide-react";
+import { Download, ArrowRight, Lightbulb, Check, Lock, Sparkles, Zap } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -349,28 +349,38 @@ export default function PipelineCard({
       {/* Unlock CTA — shown when locked */}
       {isLocked && (
         <div className="px-6 py-5 bg-gradient-to-br from-brand-50 to-blue-50 border-t border-brand-100">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-            <div className="flex-1">
-              <p className="text-sm font-bold text-gray-900 mb-0.5">
-                Unlock your full AI blueprint
-              </p>
-              <p className="text-xs text-gray-500 leading-relaxed">
-                See all {totalSteps} tools, expert reasoning, and step-by-step
-                integration guidance.
-              </p>
-            </div>
+          <div className="mb-4">
+            <p className="text-sm font-bold text-gray-900 mb-0.5">
+              Unlock your full AI blueprint
+            </p>
+            <p className="text-xs text-gray-500 leading-relaxed">
+              See all {totalSteps} tools, expert reasoning, and step-by-step
+              integration guidance.
+            </p>
+          </div>
+
+          {/* Two plan buttons */}
+          <div className="flex flex-col sm:flex-row gap-2.5">
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={onUnlock}
+              className="flex-1 justify-center"
+            >
+              <Zap size={14} /> Unlock this one — $2.99
+            </Button>
             <Button
               size="sm"
               onClick={onUnlock}
-              style={{ whiteSpace: "nowrap", flexShrink: 0 }}
+              className="flex-1 justify-center"
             >
-              <Sparkles size={14} /> Upgrade to Pro
+              <Sparkles size={14} /> Go Pro — $9.99/mo
             </Button>
           </div>
 
           {/* Trust signals */}
           <div className="flex items-center gap-4 mt-3 pt-3 border-t border-brand-100">
-            {["Unlimited blueprints", "$9.99/month", "Cancel anytime"].map((t) => (
+            {["$2.99 per blueprint", "or unlimited at $9.99/mo", "Cancel anytime"].map((t) => (
               <span key={t} className="flex items-center gap-1 text-[11px] text-gray-400 font-medium">
                 <Check size={10} className="text-brand-400" /> {t}
               </span>
