@@ -19,6 +19,7 @@ export const NEWS_CATEGORIES = [
   "Update",
   "Funding",
   "Open Source",
+  "Model Release",
   "Research",
   "Industry",
 ] as const;
@@ -31,7 +32,7 @@ export const AI_NEWS: NewsItem[] = [
     title: "OpenAI launches GPT-5 with real-time reasoning",
     summary:
       "The latest model introduces persistent memory and multi-step planning, enabling agents that can execute complex workflows autonomously.",
-    category: "New Launch",
+    category: "Model Release",
     source: "OpenAI Blog",
     sourceUrl: "https://openai.com/blog",
     date: "2026-05-06",
@@ -75,7 +76,7 @@ export const AI_NEWS: NewsItem[] = [
     title: "Midjourney V7 brings photorealism to a new level",
     summary:
       "The new model generates images indistinguishable from professional photography, with precise text rendering and consistent characters.",
-    category: "Update",
+    category: "Model Release",
     source: "Midjourney",
     sourceUrl: "https://midjourney.com",
     date: "2026-05-04",
@@ -103,7 +104,7 @@ export const AI_NEWS: NewsItem[] = [
     title: "Hugging Face open-sources SmolLM 3 — a 3B model rivaling GPT-3.5",
     summary:
       "The compact model runs on a single GPU and scores competitively on benchmarks, making powerful AI accessible to indie developers.",
-    category: "Open Source",
+    category: "Model Release",
     source: "Hugging Face",
     sourceUrl: "https://huggingface.co",
     date: "2026-05-03",
@@ -131,7 +132,7 @@ export const AI_NEWS: NewsItem[] = [
     title: "Runway ships Gen-4 video — 60-second clips with scene consistency",
     summary:
       "The new video model maintains character and scene coherence across long clips, with support for custom style references.",
-    category: "Update",
+    category: "Model Release",
     source: "Runway",
     sourceUrl: "https://runwayml.com",
     date: "2026-05-02",
@@ -159,7 +160,7 @@ export const AI_NEWS: NewsItem[] = [
     title: "Stability AI releases Stable Diffusion 4 under Apache 2.0",
     summary:
       "The open-source image model brings quality on par with proprietary alternatives, with built-in safety filters and commercial licensing.",
-    category: "Open Source",
+    category: "Model Release",
     source: "Stability AI",
     sourceUrl: "https://stability.ai",
     date: "2026-05-01",
@@ -187,7 +188,7 @@ export const AI_NEWS: NewsItem[] = [
     title: "Google DeepMind unveils Gemini Ultra 2 with 2M token context",
     summary:
       "The largest context window yet enables processing entire codebases, book series, and hours of video in a single prompt.",
-    category: "Research",
+    category: "Model Release",
     source: "Google DeepMind",
     sourceUrl: "https://deepmind.google",
     date: "2026-04-29",

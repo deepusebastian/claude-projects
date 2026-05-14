@@ -12,6 +12,7 @@ import {
   X,
   BookOpen,
   Newspaper,
+  BarChart3,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -54,6 +55,12 @@ export default function Navbar() {
         {/* Desktop nav */}
         <div className="hidden md:flex items-center gap-1.5">
           {navLink("/", "News", <Newspaper size={16} />, pathname === "/")}
+          {navLink(
+            "/models",
+            "Models",
+            <BarChart3 size={16} />,
+            pathname === "/models"
+          )}
           {navLink(
             "/tools",
             "AI Tools",
@@ -122,6 +129,13 @@ export default function Navbar() {
             className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-gray-700 rounded-lg hover:bg-gray-50"
           >
             <Newspaper size={16} /> News
+          </Link>
+          <Link
+            href="/models"
+            onClick={() => setMobileOpen(false)}
+            className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-gray-700 rounded-lg hover:bg-gray-50"
+          >
+            <BarChart3 size={16} /> Models
           </Link>
           <Link
             href="/tools"

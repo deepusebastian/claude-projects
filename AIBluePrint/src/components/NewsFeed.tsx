@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ExternalLink, Star, RefreshCw } from "lucide-react";
+import { Clock, RefreshCw } from "lucide-react";
 import {
   AI_NEWS,
   NEWS_CATEGORIES,
@@ -10,7 +10,8 @@ import {
 } from "@/data/ai-news";
 import type { FeedItem } from "@/lib/rss";
 
-// Map feed items to the same shape as static news
+// ── Types ───────────────────────────────────────────────────────────────
+
 interface DisplayItem {
   id: string;
   title: string;
@@ -26,11 +27,14 @@ interface DisplayItem {
   image?: string;
 }
 
+// ── Constants ───────────────────────────────────────────────────────────
+
 const CATEGORY_COLORS: Record<string, string> = {
   "New Launch": "bg-green-50 text-green-600 border-green-100",
   Update: "bg-blue-50 text-blue-600 border-blue-100",
   Funding: "bg-amber-50 text-amber-600 border-amber-100",
   "Open Source": "bg-purple-50 text-purple-600 border-purple-100",
+  "Model Release": "bg-rose-50 text-rose-600 border-rose-100",
   Research: "bg-cyan-50 text-cyan-600 border-cyan-100",
   Industry: "bg-gray-50 text-gray-600 border-gray-100",
 };
@@ -45,6 +49,8 @@ const SOURCE_COLORS: Record<string, string> = {
   HN: "#ff6600",
   AT: "#ff4e00",
 };
+
+// ── Helpers ─────────────────────────────────────────────────────────────
 
 function feedItemToDisplay(item: FeedItem, index: number): DisplayItem {
   return {
@@ -62,6 +68,107 @@ function feedItemToDisplay(item: FeedItem, index: number): DisplayItem {
     image: item.image,
   };
 }
+
+function getReadingTime(summary: string): string {
+  const words = summary.split(/\s+/).length;
+  const mins = Math.max(1, Math.ceil(words / 200));
+  return `${mins} min read`;
+}
+
+function getFaviconUrl(sourceUrl: string): string {
+  try {
+    const domain = new URL(sourceUrl).hostname;
+    return `https://www.google.com/s2/favicons?sz=32&domain=${domain}`;
+  } catch {
+    return "";
+  }
+}
+
+// ── Subcomponents ───────────────────────────────────────────────────────
+
+function SourceBadge({ source, sourceUrl, toolLetter, toolColor }: {
+  source: string;
+  sourceUrl: string;
+  toolLetter?: string;
+  toolColor?: string;
+}) {
+  const favicon = getFaviconUrl(sourceUrl);
+  return (
+    <div className="flex items-center gap-1.5">
+      {favicon ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={favicon}
+          alt=""
+          className="w-4 h-4 rounded-sm"
+          onError={(e) => {
+            const el = e.target as HTMLImageElement;
+            el.style.display = "none";
+          }}
+        />
+      ) : toolLetter ? (
+        <div
+          className="w-4 h-4 rounded-sm flex items-center justify-center text-white text-[8px] font-bold"
+          style={{ backgroundColor: toolColor || "#6c3cef" }}
+        >
+          {toolLetter}
+        </div>
+      ) : null}
+      <span className="text-xs font-medium text-gray-500">{source}</span>
+    </div>
+  );
+}
+
+function CategoryBadge({ category }: { category: string }) {
+  return (
+    <span
+      className={`px-2 py-0.5 rounded-md border text-[11px] font-semibold ${CATEGORY_COLORS[category] || "bg-gray-50 text-gray-500 border-gray-100"}`}
+    >
+      {category}
+    </span>
+  );
+}
+
+function ImageWithFallback({ src, toolLetter, toolColor, className, overlayGradient }: {
+  src?: string;
+  toolLetter?: string;
+  toolColor?: string;
+  className?: string;
+  overlayGradient?: boolean;
+}) {
+  if (!src) {
+    return (
+      <div className={`bg-gradient-to-br from-gray-100 to-gray-50 flex items-center justify-center ${className}`}>
+        <div
+          className="w-12 h-12 rounded-xl flex items-center justify-center text-white text-lg font-bold shadow-sm"
+          style={{ backgroundColor: toolColor || "#6c3cef" }}
+        >
+          {toolLetter || "?"}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className={`bg-gray-100 overflow-hidden relative ${className}`}>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={src}
+        alt=""
+        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
+        onError={(e) => {
+          const el = e.target as HTMLImageElement;
+          el.style.display = "none";
+        }}
+      />
+      {overlayGradient && (
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
+      )}
+    </div>
+  );
+}
+
+// ── Main Component ──────────────────────────────────────────────────────
 
 export default function NewsFeed() {
   const [activeCategory, setActiveCategory] = useState<NewsCategory>("All");
@@ -91,31 +198,18 @@ export default function NewsFeed() {
     fetchNews();
   }, []);
 
-  // Use live RSS data if available, otherwise fall back to static
+  // Data
   const allItems: DisplayItem[] = liveItems ?? AI_NEWS;
-
   const filtered =
     activeCategory === "All"
       ? allItems
       : allItems.filter((n) => n.category === activeCategory);
 
-  // For live feeds, feature the first 2 items
-  const displayItems = liveItems
-    ? filtered
-    : (() => {
-        const feat = filtered.filter((n) => n.featured);
-        const reg = filtered.filter((n) => !n.featured);
-        return [...feat, ...reg];
-      })();
+  // Split: hero (1), secondary featured (2), rest as grid cards
+  const hero = filtered[0] || null;
+  const secondaryFeatured = filtered.slice(1, 3);
+  const gridItems = filtered.slice(3);
 
-  const featured = liveItems
-    ? displayItems.slice(0, 2)
-    : displayItems.filter((n) => n.featured);
-  const regular = liveItems
-    ? displayItems.slice(2)
-    : displayItems.filter((n) => !n.featured);
-
-  // Category counts based on all items
   const getCatCount = (cat: string) =>
     cat === "All"
       ? allItems.length
@@ -123,20 +217,17 @@ export default function NewsFeed() {
 
   return (
     <div>
-      {/* Header row */}
-      <div className="flex items-center justify-between mb-4">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-5">
         <h2 className="text-lg font-bold text-gray-900">Latest AI News</h2>
         <div className="flex items-center gap-3">
           {lastFetched && (
-            <span className="text-xs text-gray-300">
-              Live from RSS
-            </span>
+            <span className="text-[11px] text-gray-300">Live from RSS</span>
           )}
           {!loading && (
             <button
               onClick={fetchNews}
               className="p-1.5 text-gray-300 hover:text-gray-500 rounded-md hover:bg-gray-50 transition-colors"
-              title="Refresh feeds"
             >
               <RefreshCw size={14} />
             </button>
@@ -154,9 +245,9 @@ export default function NewsFeed() {
             <button
               key={cat}
               onClick={() => setActiveCategory(cat)}
-              className={`px-3.5 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+              className={`px-3.5 py-1.5 rounded-lg text-sm font-medium transition-all ${
                 isActive
-                  ? "bg-gray-900 text-white"
+                  ? "bg-gray-900 text-white shadow-sm"
                   : "bg-gray-50 text-gray-500 hover:bg-gray-100 border border-gray-100"
               }`}
             >
@@ -174,33 +265,128 @@ export default function NewsFeed() {
       {/* Loading skeleton */}
       {loading && !liveItems && (
         <div className="space-y-4">
-          {[1, 2, 3, 4, 5].map((i) => (
-            <div key={i} className="flex items-start gap-3.5 py-4">
-              <div className="w-9 h-9 rounded-lg bg-gray-100 animate-pulse flex-shrink-0" />
-              <div className="flex-1 space-y-2">
-                <div className="h-4 bg-gray-100 rounded animate-pulse w-3/4" />
-                <div className="h-3 bg-gray-50 rounded animate-pulse w-full" />
-                <div className="h-3 bg-gray-50 rounded animate-pulse w-1/3" />
-              </div>
-            </div>
-          ))}
+          <div className="h-72 bg-gray-100 rounded-2xl animate-pulse" />
+          <div className="grid grid-cols-2 gap-4">
+            <div className="h-48 bg-gray-50 rounded-xl animate-pulse" />
+            <div className="h-48 bg-gray-50 rounded-xl animate-pulse" />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="h-36 bg-gray-50 rounded-xl animate-pulse" />
+            ))}
+          </div>
         </div>
       )}
 
-      {/* Featured cards */}
-      {!loading && featured.length > 0 && (
+      {/* ─── Hero card ─── */}
+      {!loading && hero && (
+        <a
+          href={hero.sourceUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="group block rounded-2xl overflow-hidden mb-6 relative bg-gray-900 hover:shadow-xl transition-shadow duration-300"
+        >
+          <ImageWithFallback
+            src={hero.image}
+            toolLetter={hero.toolLetter}
+            toolColor={hero.toolColor}
+            className="w-full h-56 md:h-72"
+            overlayGradient
+          />
+          {/* Content overlay */}
+          <div className="absolute bottom-0 left-0 right-0 p-6">
+            <div className="flex items-center gap-2.5 mb-3">
+              <CategoryBadge category={hero.category} />
+              <SourceBadge
+                source={hero.source}
+                sourceUrl={hero.sourceUrl}
+                toolLetter={hero.toolLetter}
+                toolColor={hero.toolColor}
+              />
+              <span className="text-xs text-white/60">
+                {getRelativeTime(hero.date)}
+              </span>
+            </div>
+            <h3 className="text-xl md:text-2xl font-bold text-white leading-snug mb-2 group-hover:text-brand-200 transition-colors">
+              {hero.title}
+            </h3>
+            {hero.summary && (
+              <p className="text-sm text-white/70 leading-relaxed line-clamp-2 max-w-lg">
+                {hero.summary}
+              </p>
+            )}
+            <div className="flex items-center gap-1.5 mt-3 text-white/50 text-xs">
+              <Clock size={11} />
+              <span>{getReadingTime(hero.summary)}</span>
+            </div>
+          </div>
+        </a>
+      )}
+
+      {/* ─── Secondary featured (2 cards side by side) ─── */}
+      {!loading && secondaryFeatured.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-          {featured.map((item) => (
+          {secondaryFeatured.map((item) => (
             <a
               key={item.id}
               href={item.sourceUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="group block bg-white border border-gray-200 rounded-xl overflow-hidden hover:border-gray-300 hover:shadow-sm transition-all"
+              className="group block bg-white border border-gray-200 rounded-xl overflow-hidden hover:border-gray-300 hover:shadow-md transition-all duration-200"
             >
-              {/* Image */}
-              {item.image && (
-                <div className="w-full h-40 bg-gray-100 overflow-hidden">
+              <ImageWithFallback
+                src={item.image}
+                toolLetter={item.toolLetter}
+                toolColor={item.toolColor}
+                className="w-full h-40"
+              />
+              <div className="p-5">
+                <div className="flex items-center gap-2 mb-2.5">
+                  <CategoryBadge category={item.category} />
+                  <span className="text-xs text-gray-400">
+                    {getRelativeTime(item.date)}
+                  </span>
+                </div>
+                <h3 className="text-[15px] font-bold text-gray-900 leading-snug mb-2 group-hover:text-brand-600 transition-colors line-clamp-2">
+                  {item.title}
+                </h3>
+                {item.summary && (
+                  <p className="text-sm text-gray-400 leading-relaxed line-clamp-2 mb-3">
+                    {item.summary}
+                  </p>
+                )}
+                <div className="flex items-center justify-between">
+                  <SourceBadge
+                    source={item.source}
+                    sourceUrl={item.sourceUrl}
+                    toolLetter={item.toolLetter}
+                    toolColor={item.toolColor}
+                  />
+                  <div className="flex items-center gap-1 text-gray-300 text-xs">
+                    <Clock size={10} />
+                    <span>{getReadingTime(item.summary)}</span>
+                  </div>
+                </div>
+              </div>
+            </a>
+          ))}
+        </div>
+      )}
+
+      {/* ─── Grid of remaining items ─── */}
+      {!loading && gridItems.length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {gridItems.map((item) => (
+            <a
+              key={item.id}
+              href={item.sourceUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group flex gap-4 bg-white border border-gray-100 rounded-xl p-4 hover:border-gray-200 hover:shadow-sm transition-all duration-200"
+            >
+              {/* Thumbnail */}
+              {item.image ? (
+                <div className="w-24 h-20 rounded-lg bg-gray-100 overflow-hidden flex-shrink-0">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={item.image}
@@ -211,113 +397,39 @@ export default function NewsFeed() {
                     }}
                   />
                 </div>
-              )}
-              <div className="p-5">
-                <div className="flex items-start gap-3.5 mb-3">
-                  {item.toolLetter && (
-                    <div
-                      className="w-10 h-10 rounded-lg flex items-center justify-center text-white text-sm font-bold flex-shrink-0"
-                      style={{ backgroundColor: item.toolColor || "#6c3cef" }}
-                    >
-                      {item.toolLetter}
-                    </div>
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <Star
-                        size={13}
-                        className="text-amber-400 flex-shrink-0"
-                      />
-                      <span className="text-[11px] font-semibold text-amber-500 uppercase tracking-wide">
-                        Featured
-                      </span>
-                    </div>
-                    <h3 className="text-base font-semibold text-gray-900 leading-snug group-hover:text-brand-600 transition-colors">
-                      {item.title}
-                    </h3>
+              ) : (
+                <div className="w-24 h-20 rounded-lg bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center flex-shrink-0">
+                  <div
+                    className="w-9 h-9 rounded-lg flex items-center justify-center text-white text-xs font-bold"
+                    style={{ backgroundColor: item.toolColor || "#6c3cef" }}
+                  >
+                    {item.toolLetter || "?"}
                   </div>
                 </div>
-                {item.summary && (
-                  <p className="text-sm text-gray-500 leading-relaxed mb-3">
-                    {item.summary}
-                  </p>
-                )}
-                <div className="flex items-center gap-3 text-xs text-gray-400">
-                  <span
-                    className={`px-2 py-0.5 rounded-md border text-[11px] font-medium ${CATEGORY_COLORS[item.category] || ""}`}
-                  >
-                    {item.category}
-                  </span>
-                  <span>{item.source}</span>
-                  <span>{getRelativeTime(item.date)}</span>
-                </div>
-              </div>
-            </a>
-          ))}
-        </div>
-      )}
-
-      {/* Regular news list */}
-      {!loading && (
-        <div className="space-y-1">
-          {regular.map((item) => (
-            <a
-              key={item.id}
-              href={item.sourceUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group flex items-start gap-3.5 py-4 px-3 -mx-3 rounded-lg hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-0"
-            >
-              {/* Thumbnail or source icon */}
-              {item.image ? (
-                <div className="w-20 h-16 rounded-lg bg-gray-100 overflow-hidden flex-shrink-0 mt-0.5">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={item.image}
-                    alt=""
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      const el = e.target as HTMLImageElement;
-                      // Replace broken image with source icon fallback
-                      el.parentElement!.innerHTML = `<div class="w-full h-full flex items-center justify-center text-white text-xs font-bold" style="background:${item.toolColor || "#6c3cef"}">${item.toolLetter || ""}</div>`;
-                    }}
-                  />
-                </div>
-              ) : item.toolLetter ? (
-                <div
-                  className="w-9 h-9 rounded-lg flex items-center justify-center text-white text-xs font-bold flex-shrink-0 mt-0.5"
-                  style={{ backgroundColor: item.toolColor || "#6c3cef" }}
-                >
-                  {item.toolLetter}
-                </div>
-              ) : null}
+              )}
 
               {/* Content */}
-              <div className="flex-1 min-w-0">
-                <h3 className="text-[15px] font-semibold text-gray-900 leading-snug mb-1 group-hover:text-brand-600 transition-colors">
-                  {item.title}
-                </h3>
-                {item.summary && (
-                  <p className="text-sm text-gray-400 leading-relaxed line-clamp-2 mb-2">
-                    {item.summary}
-                  </p>
-                )}
-                <div className="flex items-center gap-2.5 text-xs text-gray-400">
-                  <span
-                    className={`px-2 py-0.5 rounded-md border text-[11px] font-medium ${CATEGORY_COLORS[item.category] || ""}`}
-                  >
-                    {item.category}
+              <div className="flex-1 min-w-0 flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <CategoryBadge category={item.category} />
+                  </div>
+                  <h3 className="text-sm font-semibold text-gray-900 leading-snug group-hover:text-brand-600 transition-colors line-clamp-2">
+                    {item.title}
+                  </h3>
+                </div>
+                <div className="flex items-center justify-between mt-2">
+                  <SourceBadge
+                    source={item.source}
+                    sourceUrl={item.sourceUrl}
+                    toolLetter={item.toolLetter}
+                    toolColor={item.toolColor}
+                  />
+                  <span className="text-[11px] text-gray-300">
+                    {getRelativeTime(item.date)}
                   </span>
-                  <span>{item.source}</span>
-                  <span>{getRelativeTime(item.date)}</span>
                 </div>
               </div>
-
-              {/* External link icon */}
-              <ExternalLink
-                size={14}
-                className="text-gray-300 group-hover:text-gray-400 mt-1 flex-shrink-0 transition-colors"
-              />
             </a>
           ))}
         </div>
