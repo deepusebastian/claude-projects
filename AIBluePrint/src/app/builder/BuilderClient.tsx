@@ -296,6 +296,7 @@ export default function BuilderClient() {
               <PipelineCard
                 pipeline={msg.content as Pipeline}
                 isLocked={msg.isLocked ?? true}
+                hasFreeUnlock={hasFreeUnlock}
                 onUnlock={() => handleUnlock(i)}
                 onPaywallNeeded={() => setShowPaywall(true)}
               />
