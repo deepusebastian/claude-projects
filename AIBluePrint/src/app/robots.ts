@@ -1,6 +1,8 @@
 import { MetadataRoute } from "next";
 
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://aiblueprint.dev";
+const BASE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL ||
+  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "https://aiblueprint-one.vercel.app");
 
 export default function robots(): MetadataRoute.Robots {
   return {

@@ -146,9 +146,9 @@ export default function LandingPage() {
                 </div>
 
                 <div className="px-6 py-4 bg-gray-50/50">
-                  <Link href="/signup">
+                  <Link href="/builder">
                     <Button className="w-full justify-center text-sm" size="sm">
-                      Get Started Free
+                      Try Builder Free
                     </Button>
                   </Link>
                   <p className="text-[11px] text-gray-400 text-center mt-2">
@@ -231,10 +231,6 @@ export default function LandingPage() {
         </aside>
       </div>
 
-      {/* ─── Footer ─── */}
-      <footer className="py-9 px-6 border-t border-gray-100 text-center text-gray-400 text-[13px]">
-        &copy; {new Date().getFullYear()} AI Blueprint. All rights reserved.
-      </footer>
     </div>
   );
 }

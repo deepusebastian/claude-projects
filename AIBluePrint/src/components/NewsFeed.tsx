@@ -173,11 +173,12 @@ function ImageWithFallback({ src, toolLetter, toolColor, className, overlayGradi
 export default function NewsFeed() {
   const [activeCategory, setActiveCategory] = useState<NewsCategory>("All");
   const [liveItems, setLiveItems] = useState<DisplayItem[] | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const [lastFetched, setLastFetched] = useState<string | null>(null);
 
-  const fetchNews = async () => {
-    setLoading(true);
+  const fetchNews = async (isManualRefresh = false) => {
+    if (isManualRefresh) setRefreshing(true);
     try {
       const res = await fetch("/api/news");
       if (res.ok) {
@@ -190,7 +191,7 @@ export default function NewsFeed() {
     } catch {
       // Fall through to static data
     } finally {
-      setLoading(false);
+      setRefreshing(false);
     }
   };
 
@@ -224,14 +225,13 @@ export default function NewsFeed() {
           {lastFetched && (
             <span className="text-[11px] text-gray-300">Live from RSS</span>
           )}
-          {!loading && (
-            <button
-              onClick={fetchNews}
-              className="p-1.5 text-gray-300 hover:text-gray-500 rounded-md hover:bg-gray-50 transition-colors"
-            >
-              <RefreshCw size={14} />
-            </button>
-          )}
+          <button
+            onClick={() => fetchNews(true)}
+            className={`p-1.5 text-gray-300 hover:text-gray-500 rounded-md hover:bg-gray-50 transition-colors ${refreshing ? "animate-spin" : ""}`}
+            disabled={refreshing}
+          >
+            <RefreshCw size={14} />
+          </button>
         </div>
       </div>
 
@@ -262,24 +262,8 @@ export default function NewsFeed() {
         })}
       </div>
 
-      {/* Loading skeleton */}
-      {loading && !liveItems && (
-        <div className="space-y-4">
-          <div className="h-72 bg-gray-100 rounded-2xl animate-pulse" />
-          <div className="grid grid-cols-2 gap-4">
-            <div className="h-48 bg-gray-50 rounded-xl animate-pulse" />
-            <div className="h-48 bg-gray-50 rounded-xl animate-pulse" />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="h-36 bg-gray-50 rounded-xl animate-pulse" />
-            ))}
-          </div>
-        </div>
-      )}
-
       {/* ─── Hero card ─── */}
-      {!loading && hero && (
+      {hero && (
         <a
           href={hero.sourceUrl}
           target="_blank"
@@ -324,7 +308,7 @@ export default function NewsFeed() {
       )}
 
       {/* ─── Secondary featured (2 cards side by side) ─── */}
-      {!loading && secondaryFeatured.length > 0 && (
+      {secondaryFeatured.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
           {secondaryFeatured.map((item) => (
             <a
@@ -374,7 +358,7 @@ export default function NewsFeed() {
       )}
 
       {/* ─── Grid of remaining items ─── */}
-      {!loading && gridItems.length > 0 && (
+      {gridItems.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {gridItems.map((item) => (
             <a
@@ -435,7 +419,7 @@ export default function NewsFeed() {
         </div>
       )}
 
-      {!loading && filtered.length === 0 && (
+      {filtered.length === 0 && (
         <div className="text-center py-16 text-gray-400 text-sm">
           No news in this category yet.
         </div>

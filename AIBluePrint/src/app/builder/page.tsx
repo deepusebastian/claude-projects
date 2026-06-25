@@ -1,8 +1,15 @@
 import { Suspense } from "react";
+import type { Metadata } from "next";
 import BuilderClient from "./BuilderClient";
 
 // Opt out of static generation — this page requires auth + uses useSearchParams
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "AI Pipeline Builder",
+  description:
+    "Describe your idea in plain English and get an instant AI tool pipeline. See which tools to use, step-by-step implementation details, and expert reasoning.",
+};
 
 function BuilderFallback() {
   return (

@@ -29,14 +29,15 @@ const TIER_ORDER: Record<QualityTier, number> = {
 export default function ModelsLeaderboard() {
   const [models, setModels] = useState<LLMModel[]>(STATIC_MODELS);
   const [source, setSource] = useState<string>("static");
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const [provider, setProvider] = useState("All");
   const [tierFilter, setTierFilter] = useState<QualityTier | "All">("All");
   const [sortKey, setSortKey] = useState<SortKey>("tier");
   const [sortDir, setSortDir] = useState<SortDir>("asc");
 
-  const fetchModels = async () => {
-    setLoading(true);
+  const fetchModels = async (isManualRefresh = false) => {
+    if (isManualRefresh) setRefreshing(true);
     try {
       const res = await fetch("/api/models");
       if (res.ok) {
@@ -49,7 +50,7 @@ export default function ModelsLeaderboard() {
     } catch {
       // Keep static data
     } finally {
-      setLoading(false);
+      setRefreshing(false);
     }
   };
 
@@ -164,15 +165,14 @@ export default function ModelsLeaderboard() {
               via OpenRouter
             </span>
           )}
-          {!loading && (
-            <button
-              onClick={fetchModels}
-              className="p-1.5 text-gray-300 hover:text-gray-500 rounded-md hover:bg-gray-50 transition-colors"
-              title="Refresh data"
-            >
-              <RefreshCw size={14} />
-            </button>
-          )}
+          <button
+            onClick={() => fetchModels(true)}
+            className={`p-1.5 text-gray-300 hover:text-gray-500 rounded-md hover:bg-gray-50 transition-colors ${refreshing ? "animate-spin" : ""}`}
+            title="Refresh data"
+            disabled={refreshing}
+          >
+            <RefreshCw size={14} />
+          </button>
         </div>
       </div>
 
@@ -189,17 +189,8 @@ export default function ModelsLeaderboard() {
         })}
       </div>
 
-      {/* Loading skeleton */}
-      {loading && (
-        <div className="space-y-3">
-          {[1, 2, 3, 4, 5, 6].map((i) => (
-            <div key={i} className="h-16 bg-gray-50 rounded-xl animate-pulse" />
-          ))}
-        </div>
-      )}
-
       {/* Table */}
-      {!loading && (
+      {(
         <div className="overflow-x-auto -mx-6 px-6">
           <table className="w-full min-w-[700px]">
             <thead>
@@ -320,7 +311,7 @@ export default function ModelsLeaderboard() {
       )}
 
       {/* Footer note */}
-      {!loading && (
+      {(
         <p className="text-xs text-gray-300 mt-6 text-center">
           Prices are per 1M tokens in USD. Data sourced from {source === "openrouter" ? "OpenRouter API" : "manual research"}.
           Context window in tokens.

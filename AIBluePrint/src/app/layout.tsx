@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 import Providers from "@/components/Providers";
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://aiblueprint.dev";
+const siteUrl =
+  process.env.NEXT_PUBLIC_SITE_URL ||
+  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "https://aiblueprint-one.vercel.app");
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -79,6 +82,7 @@ export default function RootLayout({
         <Providers>
           <Navbar />
           <main>{children}</main>
+          <Footer />
         </Providers>
       </body>
     </html>

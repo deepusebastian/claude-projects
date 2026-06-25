@@ -1,7 +1,9 @@
 import { MetadataRoute } from "next";
 import { getAllUseCaseSlugs } from "@/data/use-cases";
 
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://aiblueprint.dev";
+const BASE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL ||
+  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "https://aiblueprint-one.vercel.app");
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date().toISOString();
@@ -10,17 +12,23 @@ export default function sitemap(): MetadataRoute.Sitemap {
     {
       url: BASE_URL,
       lastModified: now,
-      changeFrequency: "weekly",
+      changeFrequency: "daily",
       priority: 1.0,
     },
     {
-      url: `${BASE_URL}/builder`,
+      url: `${BASE_URL}/models`,
+      lastModified: now,
+      changeFrequency: "daily",
+      priority: 0.9,
+    },
+    {
+      url: `${BASE_URL}/tools`,
       lastModified: now,
       changeFrequency: "weekly",
       priority: 0.9,
     },
     {
-      url: `${BASE_URL}/tools`,
+      url: `${BASE_URL}/builder`,
       lastModified: now,
       changeFrequency: "weekly",
       priority: 0.8,
