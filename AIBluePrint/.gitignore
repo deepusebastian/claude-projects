@@ -39,6 +39,9 @@ prisma/dev.db-journal
 
 /node_modules
 
+# Sentry build plugin (contains auth token)
+.env.sentry-build-plugin
+
 # local-only (credentials / notes)
 neon-details.txt
 stripe_backup_code.txt

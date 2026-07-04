@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "@sentry/nextjs": "^10.63.0"
+  }
+}
