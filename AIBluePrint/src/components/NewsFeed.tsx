@@ -129,22 +129,64 @@ function CategoryBadge({ category }: { category: string }) {
   );
 }
 
-function ImageWithFallback({ src, toolLetter, toolColor, className, overlayGradient }: {
+// Deterministic gradient palettes for items without images
+const GRADIENT_PALETTES = [
+  { from: "#1e1b4b", to: "#312e81", accent: "#818cf8" }, // indigo
+  { from: "#0c4a6e", to: "#075985", accent: "#38bdf8" }, // sky
+  { from: "#134e4a", to: "#115e59", accent: "#2dd4bf" }, // teal
+  { from: "#3b0764", to: "#581c87", accent: "#c084fc" }, // purple
+  { from: "#1e3a5f", to: "#1e40af", accent: "#60a5fa" }, // blue
+  { from: "#4a1d1d", to: "#7f1d1d", accent: "#f87171" }, // red
+  { from: "#365314", to: "#3f6212", accent: "#a3e635" }, // lime
+  { from: "#431407", to: "#7c2d12", accent: "#fb923c" }, // orange
+];
+
+function getGradient(id: string) {
+  let hash = 0;
+  for (let i = 0; i < id.length; i++) {
+    hash = id.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return GRADIENT_PALETTES[Math.abs(hash) % GRADIENT_PALETTES.length];
+}
+
+function ImageWithFallback({ src, toolLetter, toolColor, className, overlayGradient, itemId }: {
   src?: string;
   toolLetter?: string;
   toolColor?: string;
   className?: string;
   overlayGradient?: boolean;
+  itemId?: string;
 }) {
   if (!src) {
+    const grad = getGradient(itemId || toolLetter || "default");
     return (
-      <div className={`bg-gradient-to-br from-gray-100 to-gray-50 flex items-center justify-center ${className}`}>
+      <div
+        className={`relative overflow-hidden flex items-center justify-center ${className}`}
+        style={{ background: `linear-gradient(135deg, ${grad.from} 0%, ${grad.to} 100%)` }}
+      >
+        {/* Decorative circles */}
         <div
-          className="w-12 h-12 rounded-xl flex items-center justify-center text-white text-lg font-bold shadow-sm"
-          style={{ backgroundColor: toolColor || "#6c3cef" }}
+          className="absolute -top-10 -right-10 w-40 h-40 rounded-full opacity-10"
+          style={{ backgroundColor: grad.accent }}
+        />
+        <div
+          className="absolute -bottom-8 -left-8 w-32 h-32 rounded-full opacity-10"
+          style={{ backgroundColor: grad.accent }}
+        />
+        <div
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-56 h-56 rounded-full opacity-5"
+          style={{ backgroundColor: grad.accent }}
+        />
+        {/* Source icon */}
+        <div
+          className="relative w-16 h-16 rounded-2xl flex items-center justify-center text-white text-2xl font-bold shadow-lg"
+          style={{ backgroundColor: toolColor || grad.accent, boxShadow: `0 8px 32px ${grad.from}80` }}
         >
           {toolLetter || "?"}
         </div>
+        {overlayGradient && (
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+        )}
       </div>
     );
   }
@@ -162,7 +204,7 @@ function ImageWithFallback({ src, toolLetter, toolColor, className, overlayGradi
         }}
       />
       {overlayGradient && (
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />
       )}
     </div>
   );
@@ -245,10 +287,10 @@ export default function NewsFeed() {
             <button
               key={cat}
               onClick={() => setActiveCategory(cat)}
-              className={`px-3.5 py-1.5 rounded-lg text-sm font-medium transition-all ${
+              className={`px-3.5 py-1.5 rounded-lg text-sm font-medium transition-all duration-150 ${
                 isActive
-                  ? "bg-gray-900 text-white shadow-sm"
-                  : "bg-gray-50 text-gray-500 hover:bg-gray-100 border border-gray-100"
+                  ? "bg-gray-900 text-white shadow-sm ring-1 ring-black/10"
+                  : "bg-white text-gray-500 hover:bg-gray-50 hover:text-gray-700 border border-gray-200 hover:border-gray-300"
               }`}
             >
               {cat}
@@ -268,17 +310,18 @@ export default function NewsFeed() {
           href={hero.sourceUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="group block rounded-2xl overflow-hidden mb-6 relative bg-gray-900 hover:shadow-xl transition-shadow duration-300"
+          className="group block rounded-2xl overflow-hidden mb-6 relative bg-gray-900 shadow-md hover:shadow-2xl hover:-translate-y-0.5 transition-all duration-300 ring-1 ring-black/10"
         >
           <ImageWithFallback
             src={hero.image}
             toolLetter={hero.toolLetter}
             toolColor={hero.toolColor}
+            itemId={hero.id}
             className="w-full h-56 md:h-72"
             overlayGradient
           />
           {/* Content overlay */}
-          <div className="absolute bottom-0 left-0 right-0 p-6">
+          <div className="absolute bottom-0 left-0 right-0 p-7">
             <div className="flex items-center gap-2.5 mb-3">
               <CategoryBadge category={hero.category} />
               <SourceBadge
@@ -287,19 +330,19 @@ export default function NewsFeed() {
                 toolLetter={hero.toolLetter}
                 toolColor={hero.toolColor}
               />
-              <span className="text-xs text-white/60">
+              <span className="text-xs text-white/70">
                 {getRelativeTime(hero.date)}
               </span>
             </div>
-            <h3 className="text-xl md:text-2xl font-bold text-white leading-snug mb-2 group-hover:text-brand-200 transition-colors">
+            <h3 className="text-xl md:text-2xl font-extrabold text-white leading-snug mb-2.5 group-hover:text-brand-200 transition-colors drop-shadow-sm">
               {hero.title}
             </h3>
             {hero.summary && (
-              <p className="text-sm text-white/70 leading-relaxed line-clamp-2 max-w-lg">
+              <p className="text-sm text-white/75 leading-relaxed line-clamp-2 max-w-lg">
                 {hero.summary}
               </p>
             )}
-            <div className="flex items-center gap-1.5 mt-3 text-white/50 text-xs">
+            <div className="flex items-center gap-1.5 mt-3.5 text-white/60 text-xs">
               <Clock size={11} />
               <span>{getReadingTime(hero.summary)}</span>
             </div>
@@ -316,12 +359,13 @@ export default function NewsFeed() {
               href={item.sourceUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="group block bg-white border border-gray-200 rounded-xl overflow-hidden hover:border-gray-300 hover:shadow-md transition-all duration-200"
+              className="group block bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm hover:shadow-lg hover:-translate-y-0.5 hover:border-brand-100 transition-all duration-200"
             >
               <ImageWithFallback
                 src={item.image}
                 toolLetter={item.toolLetter}
                 toolColor={item.toolColor}
+                itemId={item.id}
                 className="w-full h-40"
               />
               <div className="p-5">
@@ -331,7 +375,7 @@ export default function NewsFeed() {
                     {getRelativeTime(item.date)}
                   </span>
                 </div>
-                <h3 className="text-[15px] font-bold text-gray-900 leading-snug mb-2 group-hover:text-brand-600 transition-colors line-clamp-2">
+                <h3 className="text-[15px] font-bold text-gray-900 leading-snug mb-2 group-hover:text-brand-500 transition-colors line-clamp-2">
                   {item.title}
                 </h3>
                 {item.summary && (
@@ -366,31 +410,41 @@ export default function NewsFeed() {
               href={item.sourceUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="group flex gap-4 bg-white border border-gray-100 rounded-xl p-4 hover:border-gray-200 hover:shadow-sm transition-all duration-200"
+              className="group flex gap-4 bg-white border border-gray-100 rounded-2xl p-4 shadow-[0_1px_3px_rgba(0,0,0,0.04)] hover:shadow-md hover:-translate-y-0.5 hover:border-brand-100 transition-all duration-200"
             >
               {/* Thumbnail */}
-              {item.image ? (
-                <div className="w-24 h-20 rounded-lg bg-gray-100 overflow-hidden flex-shrink-0">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={item.image}
-                    alt=""
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).style.display = "none";
-                    }}
-                  />
-                </div>
-              ) : (
-                <div className="w-24 h-20 rounded-lg bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center flex-shrink-0">
-                  <div
-                    className="w-9 h-9 rounded-lg flex items-center justify-center text-white text-xs font-bold"
-                    style={{ backgroundColor: item.toolColor || "#6c3cef" }}
-                  >
-                    {item.toolLetter || "?"}
+              {(() => {
+                const grad = getGradient(item.id);
+                return item.image ? (
+                  <div className="w-24 h-20 rounded-xl bg-gray-100 overflow-hidden flex-shrink-0">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={item.image}
+                      alt=""
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).style.display = "none";
+                      }}
+                    />
                   </div>
-                </div>
-              )}
+                ) : (
+                  <div
+                    className="w-24 h-20 rounded-xl flex items-center justify-center flex-shrink-0 relative overflow-hidden"
+                    style={{ background: `linear-gradient(135deg, ${grad.from} 0%, ${grad.to} 100%)` }}
+                  >
+                    <div
+                      className="absolute -top-4 -right-4 w-16 h-16 rounded-full opacity-10"
+                      style={{ backgroundColor: grad.accent }}
+                    />
+                    <div
+                      className="relative w-9 h-9 rounded-lg flex items-center justify-center text-white text-xs font-bold"
+                      style={{ backgroundColor: item.toolColor || grad.accent }}
+                    >
+                      {item.toolLetter || "?"}
+                    </div>
+                  </div>
+                );
+              })()}
 
               {/* Content */}
               <div className="flex-1 min-w-0 flex flex-col justify-between">
@@ -398,7 +452,7 @@ export default function NewsFeed() {
                   <div className="flex items-center gap-2 mb-1.5">
                     <CategoryBadge category={item.category} />
                   </div>
-                  <h3 className="text-sm font-semibold text-gray-900 leading-snug group-hover:text-brand-600 transition-colors line-clamp-2">
+                  <h3 className="text-sm font-semibold text-gray-900 leading-snug group-hover:text-brand-500 transition-colors line-clamp-2">
                     {item.title}
                   </h3>
                 </div>

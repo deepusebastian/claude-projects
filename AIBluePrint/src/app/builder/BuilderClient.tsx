@@ -7,6 +7,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Button from "@/components/Button";
 import PipelineCard from "@/components/PipelineCard";
 import PaywallModal from "@/components/PaywallModal";
+import { PAYMENTS_ENABLED } from "@/lib/flags";
 import {
   PIPELINE_SCENARIOS,
   SUGGESTION_CHIPS,
@@ -154,6 +155,15 @@ export default function BuilderClient() {
 
   const handleUnlock = useCallback(
     (messageIndex: number) => {
+      // Payments off → always unlock, never show paywall
+      if (!PAYMENTS_ENABLED) {
+        setMessages((prev) =>
+          prev.map((msg, i) =>
+            i === messageIndex ? { ...msg, isLocked: false } : msg
+          )
+        );
+        return;
+      }
       // Pro users — everything is already unlocked but guard just in case
       if (isPro) {
         setMessages((prev) =>
@@ -182,6 +192,12 @@ export default function BuilderClient() {
   function handleSend() {
     if (!input.trim() || isTyping) return;
 
+    // When payments are off, login is still required to generate a blueprint
+    if (!PAYMENTS_ENABLED && !session) {
+      router.push("/login?callbackUrl=/builder");
+      return;
+    }
+
     const userMsg = input.trim();
     setInput("");
 
@@ -200,8 +216,9 @@ export default function BuilderClient() {
           role: "assistant",
           type: "pipeline",
           content: pipeline,
-          // Pro users get everything unlocked by default
-          isLocked: !isPro,
+          // When payments are disabled every blueprint is free; otherwise lock
+          // unless the user is already Pro.
+          isLocked: PAYMENTS_ENABLED ? !isPro : false,
         },
       ]);
       setIsTyping(false);
@@ -246,7 +263,12 @@ export default function BuilderClient() {
         <p className="text-sm text-gray-400">
           Describe your idea and get an instant AI tool blueprint
         </p>
-        {isPro ? (
+        {!PAYMENTS_ENABLED ? (
+          <div className="inline-flex items-center gap-1.5 mt-3 px-3 py-1 rounded-full bg-green-50 text-green-600 text-xs font-medium border border-green-200">
+            <Sparkles size={12} />
+            Free — sign in to generate blueprints
+          </div>
+        ) : isPro ? (
           <div className="inline-flex items-center gap-1.5 mt-3 px-3 py-1 rounded-full bg-gradient-to-br from-brand-500 to-blue-500 text-white text-xs font-semibold">
             <Sparkles size={12} />
             Pro — Unlimited blueprints
@@ -295,10 +317,10 @@ export default function BuilderClient() {
             ) : (
               <PipelineCard
                 pipeline={msg.content as Pipeline}
-                isLocked={msg.isLocked ?? true}
+                isLocked={PAYMENTS_ENABLED ? (msg.isLocked ?? true) : false}
                 hasFreeUnlock={hasFreeUnlock}
                 onUnlock={() => handleUnlock(i)}
-                onPaywallNeeded={() => setShowPaywall(true)}
+                onPaywallNeeded={PAYMENTS_ENABLED ? () => setShowPaywall(true) : undefined}
               />
             )}
           </div>

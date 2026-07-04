@@ -4,6 +4,7 @@ import Button from "@/components/Button";
 import NewsFeed from "@/components/NewsFeed";
 import ToolLogo from "@/components/ToolLogo";
 import { FEATURED_TOOLS } from "@/data/ai-tools";
+import { PAYMENTS_ENABLED } from "@/lib/flags";
 
 export default function LandingPage() {
   return (
@@ -74,11 +75,17 @@ export default function LandingPage() {
                       title: "Get your AI stack",
                       desc: "See which tools make up your pipeline instantly",
                     },
-                    {
-                      step: "3",
-                      title: "Unlock full details",
-                      desc: "Step-by-step implementation with expert reasoning",
-                    },
+                    PAYMENTS_ENABLED
+                      ? {
+                          step: "3",
+                          title: "Unlock full details",
+                          desc: "Step-by-step implementation with expert reasoning",
+                        }
+                      : {
+                          step: "3",
+                          title: "Get full details — free",
+                          desc: "Sign in to see step-by-step implementation guidance",
+                        },
                   ].map((item) => (
                     <div key={item.step} className="flex items-start gap-3">
                       <div className="w-7 h-7 rounded-full bg-brand-50 text-brand-500 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">
@@ -97,65 +104,97 @@ export default function LandingPage() {
                 </div>
               </div>
 
-              {/* Pricing */}
-              <div className="border border-gray-200 rounded-2xl bg-white overflow-hidden">
-                <div className="p-6 border-b border-gray-100">
-                  <p className="text-[12px] font-bold text-gray-400 uppercase tracking-wide mb-3">
-                    Pricing
-                  </p>
+              {/* Pricing / free CTA */}
+              {PAYMENTS_ENABLED ? (
+                <div className="border border-gray-200 rounded-2xl bg-white overflow-hidden">
+                  <div className="p-6 border-b border-gray-100">
+                    <p className="text-[12px] font-bold text-gray-400 uppercase tracking-wide mb-3">
+                      Pricing
+                    </p>
 
-                  {/* Single blueprint */}
-                  <div className="flex items-center justify-between mb-4 pb-4 border-b border-gray-50">
-                    <div>
-                      <p className="text-sm font-semibold text-gray-900">
-                        Single Blueprint
-                      </p>
-                      <p className="text-xs text-gray-400 mt-0.5">
-                        One full unlock — pay as you go
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <span className="text-lg font-extrabold text-gray-900">
-                        $2.99
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Pro plan */}
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="flex items-center gap-1.5">
+                    {/* Single blueprint */}
+                    <div className="flex items-center justify-between mb-4 pb-4 border-b border-gray-50">
+                      <div>
                         <p className="text-sm font-semibold text-gray-900">
-                          Pro Plan
+                          Single Blueprint
                         </p>
-                        <span className="px-1.5 py-0.5 bg-brand-50 text-brand-500 text-[10px] font-bold rounded uppercase">
-                          Best value
+                        <p className="text-xs text-gray-400 mt-0.5">
+                          One full unlock — pay as you go
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-lg font-extrabold text-gray-900">
+                          $2.99
                         </span>
                       </div>
-                      <p className="text-xs text-gray-400 mt-0.5">
-                        Unlimited blueprints · cancel anytime
-                      </p>
                     </div>
-                    <div className="text-right">
-                      <span className="text-lg font-extrabold text-gray-900">
-                        $9.99
-                      </span>
-                      <span className="text-xs text-gray-400"> /mo</span>
+
+                    {/* Pro plan */}
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="flex items-center gap-1.5">
+                          <p className="text-sm font-semibold text-gray-900">
+                            Pro Plan
+                          </p>
+                          <span className="px-1.5 py-0.5 bg-brand-50 text-brand-500 text-[10px] font-bold rounded uppercase">
+                            Best value
+                          </span>
+                        </div>
+                        <p className="text-xs text-gray-400 mt-0.5">
+                          Unlimited blueprints · cancel anytime
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-lg font-extrabold text-gray-900">
+                          $9.99
+                        </span>
+                        <span className="text-xs text-gray-400"> /mo</span>
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                <div className="px-6 py-4 bg-gray-50/50">
-                  <Link href="/builder">
-                    <Button className="w-full justify-center text-sm" size="sm">
-                      Try Builder Free
-                    </Button>
-                  </Link>
-                  <p className="text-[11px] text-gray-400 text-center mt-2">
-                    First blueprint preview is free
-                  </p>
+                  <div className="px-6 py-4 bg-gray-50/50">
+                    <Link href="/builder">
+                      <Button className="w-full justify-center text-sm" size="sm">
+                        Try Builder Free
+                      </Button>
+                    </Link>
+                    <p className="text-[11px] text-gray-400 text-center mt-2">
+                      First blueprint preview is free
+                    </p>
+                  </div>
                 </div>
-              </div>
+              ) : (
+                /* Free launch mode — replace pricing with a simple sign-up CTA */
+                <div className="border border-green-100 rounded-2xl bg-green-50 overflow-hidden">
+                  <div className="p-6">
+                    <div className="flex items-center gap-2 mb-3">
+                      <span className="w-2 h-2 rounded-full bg-green-500" />
+                      <p className="text-[12px] font-bold text-green-700 uppercase tracking-wide">
+                        Free during launch
+                      </p>
+                    </div>
+                    <p className="text-sm font-semibold text-gray-900 mb-1">
+                      Unlimited blueprints — completely free
+                    </p>
+                    <p className="text-xs text-gray-500 leading-relaxed mb-5">
+                      Sign in to generate as many AI tool blueprints as you need.
+                      No credit card, no trial limits.
+                    </p>
+                    <Link href="/signup">
+                      <Button className="w-full justify-center text-sm" size="sm">
+                        <Sparkles size={14} /> Create free account
+                      </Button>
+                    </Link>
+                    <p className="text-[11px] text-gray-400 text-center mt-2">
+                      Already have an account?{" "}
+                      <Link href="/login" className="text-brand-500 font-medium hover:underline">
+                        Sign in
+                      </Link>
+                    </p>
+                  </div>
+                </div>
+              )}
 
               {/* Featured tools */}
               <div className="border border-gray-200 rounded-2xl p-6 bg-white">
