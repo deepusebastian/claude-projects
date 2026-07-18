@@ -3,6 +3,7 @@ import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Providers from "@/components/Providers";
+import { Analytics } from "@vercel/analytics/react";
 
 const siteUrl =
   process.env.NEXT_PUBLIC_SITE_URL ||
@@ -84,6 +85,7 @@ export default function RootLayout({
           <main>{children}</main>
           <Footer />
         </Providers>
+        <Analytics />
       </body>
     </html>
   );
