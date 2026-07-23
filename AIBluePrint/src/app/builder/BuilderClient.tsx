@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import { Send, Lock, CheckCircle, XCircle, Sparkles } from "lucide-react";
+import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Button from "@/components/Button";
@@ -17,7 +18,7 @@ import {
 
 interface Message {
   role: "user" | "assistant";
-  type: "text" | "pipeline";
+  type: "text" | "pipeline" | "signup-prompt";
   content: string | Pipeline;
   /** Each pipeline message tracks its own locked state */
   isLocked?: boolean;
@@ -153,6 +154,12 @@ export default function BuilderClient() {
 
   const hasFreeUnlock = unlockedCount === 0 && !isPro;
 
+  // Count how many pipelines a guest has already generated
+  const guestPipelineCount = !session
+    ? messages.filter((m) => m.type === "pipeline").length
+    : 0;
+  const isGuestAtLimit = !session && guestPipelineCount >= 1;
+
   const handleUnlock = useCallback(
     (messageIndex: number) => {
       // Payments off → always unlock, never show paywall
@@ -192,11 +199,8 @@ export default function BuilderClient() {
   function handleSend() {
     if (!input.trim() || isTyping) return;
 
-    // When payments are off, login is still required to generate a blueprint
-    if (!PAYMENTS_ENABLED && !session) {
-      router.push("/login?callbackUrl=/builder");
-      return;
-    }
+    // Guest at limit — don't generate, the signup prompt is already visible
+    if (isGuestAtLimit) return;
 
     const userMsg = input.trim();
     setInput("");
@@ -210,17 +214,26 @@ export default function BuilderClient() {
     setTimeout(() => {
       const scenario = classifyInput(userMsg);
       const pipeline = PIPELINE_SCENARIOS[scenario];
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "assistant",
-          type: "pipeline",
-          content: pipeline,
-          // When payments are disabled every blueprint is free; otherwise lock
-          // unless the user is already Pro.
-          isLocked: PAYMENTS_ENABLED ? !isPro : false,
-        },
-      ]);
+      const isGuest = !session;
+
+      setMessages((prev) => {
+        const next: Message[] = [
+          ...prev,
+          {
+            role: "assistant",
+            type: "pipeline",
+            content: pipeline,
+            // When payments are disabled every blueprint is free; otherwise lock
+            // unless the user is already Pro.
+            isLocked: PAYMENTS_ENABLED ? !isPro : false,
+          },
+        ];
+        // After a guest's first blueprint, append a signup prompt
+        if (isGuest) {
+          next.push({ role: "assistant", type: "signup-prompt", content: "" });
+        }
+        return next;
+      });
       setIsTyping(false);
     }, 2200);
   }
@@ -314,6 +327,33 @@ export default function BuilderClient() {
               >
                 {msg.content as string}
               </div>
+            ) : msg.type === "signup-prompt" ? (
+              <div className="w-full max-w-[520px] bg-gradient-to-br from-brand-50 to-blue-50 border border-brand-100 rounded-2xl p-6">
+                <div className="flex items-center gap-2 mb-2">
+                  <Sparkles size={16} className="text-brand-500" />
+                  <p className="text-sm font-bold text-gray-900">
+                    Want more blueprints?
+                  </p>
+                </div>
+                <p className="text-sm text-gray-500 mb-5 leading-relaxed">
+                  You&apos;ve used your free blueprint. Create a free account to
+                  generate unlimited blueprints and save your work.
+                </p>
+                <div className="flex gap-2.5">
+                  <Link
+                    href="/signup"
+                    className="flex-1 text-center px-4 py-2.5 rounded-xl bg-gradient-to-br from-brand-500 to-blue-500 text-white text-sm font-semibold hover:opacity-90 transition-opacity shadow-sm"
+                  >
+                    Create free account
+                  </Link>
+                  <Link
+                    href="/login"
+                    className="flex-1 text-center px-4 py-2.5 rounded-xl border border-gray-200 bg-white text-gray-700 text-sm font-semibold hover:border-gray-300 transition-colors"
+                  >
+                    Log in
+                  </Link>
+                </div>
+              </div>
             ) : (
               <PipelineCard
                 pipeline={msg.content as Pipeline}
@@ -351,24 +391,39 @@ export default function BuilderClient() {
         </div>
       )}
 
-      <div className="flex gap-2.5 items-end p-3.5 rounded-[14px] border bg-gray-50 border-gray-200">
-        <textarea
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && !e.shiftKey) {
-              e.preventDefault();
-              handleSend();
-            }
-          }}
-          placeholder="Describe your idea, business, or problem..."
-          rows={2}
-          className="flex-1 resize-none bg-transparent border-none text-gray-900 text-sm leading-relaxed outline-none placeholder:text-gray-400"
-        />
-        <Button size="sm" onClick={handleSend} disabled={!input.trim() || isTyping}>
-          <Send size={16} />
-        </Button>
-      </div>
+      {isGuestAtLimit ? (
+        <div className="flex items-center gap-3 p-4 rounded-[14px] border border-brand-100 bg-brand-50">
+          <Lock size={15} className="text-brand-400 flex-shrink-0" />
+          <p className="text-sm text-brand-700 flex-1">
+            Sign up to keep building — it&apos;s free.
+          </p>
+          <Link
+            href="/signup"
+            className="px-4 py-2 rounded-lg bg-gradient-to-br from-brand-500 to-blue-500 text-white text-xs font-semibold hover:opacity-90 transition-opacity whitespace-nowrap"
+          >
+            Create account
+          </Link>
+        </div>
+      ) : (
+        <div className="flex gap-2.5 items-end p-3.5 rounded-[14px] border bg-gray-50 border-gray-200">
+          <textarea
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                handleSend();
+              }
+            }}
+            placeholder="Describe your idea, business, or problem..."
+            rows={2}
+            className="flex-1 resize-none bg-transparent border-none text-gray-900 text-sm leading-relaxed outline-none placeholder:text-gray-400"
+          />
+          <Button size="sm" onClick={handleSend} disabled={!input.trim() || isTyping}>
+            <Send size={16} />
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

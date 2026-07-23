@@ -54,7 +54,7 @@ export default function Navbar() {
 
         {/* Desktop nav */}
         <div className="hidden md:flex items-center gap-1.5">
-          {navLink("/", "News", <Newspaper size={16} />, pathname === "/")}
+          {navLink("/news", "News", <Newspaper size={16} />, pathname === "/news")}
           {navLink(
             "/models",
             "Models",
@@ -68,10 +68,10 @@ export default function Navbar() {
             pathname === "/tools"
           )}
           {navLink(
-            "/builder",
+            "/",
             "Builder",
             <Zap size={16} />,
-            pathname === "/builder"
+            pathname === "/"
           )}
 
           {!session ? (
@@ -124,7 +124,7 @@ export default function Navbar() {
       {mobileOpen && (
         <div className="md:hidden bg-white border-t border-gray-100 px-6 py-4 space-y-2 shadow-lg">
           <Link
-            href="/"
+            href="/news"
             onClick={() => setMobileOpen(false)}
             className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-gray-700 rounded-lg hover:bg-gray-50"
           >
@@ -145,7 +145,7 @@ export default function Navbar() {
             <BookOpen size={16} /> AI Tools
           </Link>
           <Link
-            href="/builder"
+            href="/"
             onClick={() => setMobileOpen(false)}
             className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-gray-700 rounded-lg hover:bg-gray-50"
           >
