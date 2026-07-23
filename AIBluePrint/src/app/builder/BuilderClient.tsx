@@ -149,8 +149,9 @@ export default function BuilderClient() {
   }, [searchParams, router, hydrated]);
 
   useEffect(() => {
+    if (!hydrated || messages.length <= 1) return;
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, isTyping]);
+  }, [messages, isTyping, hydrated]);
 
   const hasFreeUnlock = unlockedCount === 0 && !isPro;
 
