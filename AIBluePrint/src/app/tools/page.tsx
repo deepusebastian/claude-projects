@@ -88,7 +88,7 @@ export default function ToolsDirectoryPage() {
   }, []);
 
   return (
-    <div className="min-h-screen pt-[76px] pb-20">
+    <div className="min-h-screen pt-[104px] pb-20">
       {/* ─── Hero ─── */}
       <section className="py-16 px-6 text-center bg-gradient-to-b from-brand-50/50 to-white border-b border-gray-100">
         <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-brand-100 text-brand-600 text-[13px] font-semibold mb-5">

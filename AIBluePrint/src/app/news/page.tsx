@@ -8,13 +8,13 @@ import { PAYMENTS_ENABLED } from "@/lib/flags";
 
 export default function NewsPage() {
   return (
-    <div className="pt-[60px] min-h-screen flex flex-col">
+    <div className="pt-[104px] min-h-screen flex flex-col">
       {/* ─── Two-column layout ─── */}
       <div className="flex-1 flex flex-col lg:flex-row">
         {/* ═══ LEFT: RSS News Feed ═══ */}
         <div className="flex-1 min-w-0 border-r border-gray-100">
           {/* Feed header */}
-          <div className="sticky top-[60px] z-10 bg-white/90 backdrop-blur-md border-b border-gray-100 px-6 py-4">
+          <div className="sticky top-[104px] z-10 bg-white/90 backdrop-blur-md border-b border-gray-100 px-6 py-4">
             <h1 className="text-xl font-bold text-gray-900 tracking-tight">
               AI News
             </h1>
@@ -31,7 +31,7 @@ export default function NewsPage() {
         {/* ═══ RIGHT: AI Blueprint + Tools ═══ */}
         <aside className="w-full lg:w-[420px] flex-shrink-0 bg-gray-50/50">
           {/* Sticky sidebar content */}
-          <div className="lg:sticky lg:top-[60px] lg:h-[calc(100vh-60px)] lg:overflow-y-auto scrollbar-thin">
+          <div className="lg:sticky lg:top-[104px] lg:h-[calc(100vh-104px)] lg:overflow-y-auto scrollbar-thin">
             <div className="px-6 py-8 space-y-6">
               {/* Hero CTA */}
               <div className="bg-gradient-to-br from-brand-500 to-blue-500 rounded-2xl p-7 text-white">

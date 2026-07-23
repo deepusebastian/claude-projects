@@ -76,7 +76,7 @@ export default function DashboardPage() {
 
   if (status === "loading") {
     return (
-      <div className="min-h-screen flex items-center justify-center pt-[60px]">
+      <div className="min-h-screen flex items-center justify-center pt-[104px]">
         <div className="text-gray-400 text-sm animate-pulse">Loading…</div>
       </div>
     );

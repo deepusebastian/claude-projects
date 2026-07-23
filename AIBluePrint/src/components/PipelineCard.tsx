@@ -170,7 +170,7 @@ export default function PipelineCard({
   return (
     <div className="w-full max-w-[680px] bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-md">
       {/* Header */}
-      <div className="px-6 pt-5 pb-4 bg-gray-50 border-b border-gray-100">
+      <div className="px-4 sm:px-6 pt-5 pb-4 bg-gray-50 border-b border-gray-100">
         <p className="text-[11px] font-bold text-brand-500 uppercase tracking-[0.08em] mb-1.5">
           Your AI Blueprint
         </p>
@@ -181,7 +181,7 @@ export default function PipelineCard({
       </div>
 
       {/* Steps */}
-      <div className="px-6 py-5">
+      <div className="px-4 sm:px-6 py-5">
         {pipeline.steps.map((step, i) => {
           const tool = AI_TOOLS[step.tool];
           const isExpanded = expandedStep === i;
@@ -325,7 +325,7 @@ export default function PipelineCard({
       </div>
 
       {/* Summary — always visible but blurred when locked */}
-      <div className="px-6 py-4 bg-gray-50 border-t border-gray-100">
+      <div className="px-4 sm:px-6 py-4 bg-gray-50 border-t border-gray-100">
         {isLocked ? (
           <div className="relative">
             <p
@@ -351,7 +351,7 @@ export default function PipelineCard({
 
       {/* Unlock CTA — shown when locked */}
       {isLocked && (
-        <div className="px-6 py-5 bg-gradient-to-br from-brand-50 to-blue-50 border-t border-brand-100">
+        <div className="px-4 sm:px-6 py-5 bg-gradient-to-br from-brand-50 to-blue-50 border-t border-brand-100">
           {hasFreeUnlock ? (
             <>
               <div className="mb-4">
@@ -406,8 +406,8 @@ export default function PipelineCard({
               </div>
 
               {/* Trust signals */}
-              <div className="flex items-center gap-4 mt-3 pt-3 border-t border-brand-100">
-                {["$2.99 per blueprint", "or unlimited at $9.99/mo", "Cancel anytime"].map((t) => (
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 mt-3 pt-3 border-t border-brand-100">
+                {["$2.99 per blueprint", "Unlimited at $9.99/mo", "Cancel anytime"].map((t) => (
                   <span key={t} className="flex items-center gap-1 text-[11px] text-gray-400 font-medium">
                     <Check size={10} className="text-brand-400" /> {t}
                   </span>
@@ -420,7 +420,7 @@ export default function PipelineCard({
 
       {/* Actions — shown when unlocked */}
       {!isLocked && (
-        <div className="px-6 py-3.5 flex gap-2.5 justify-end border-t border-gray-100">
+        <div className="px-4 sm:px-6 py-3.5 flex gap-2.5 justify-end border-t border-gray-100">
           <Button variant="secondary" size="sm" onClick={handleExportPDF}>
             <Download size={14} /> Export PDF
           </Button>

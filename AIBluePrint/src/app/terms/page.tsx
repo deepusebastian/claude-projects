@@ -11,7 +11,7 @@ const CONTACT_EMAIL = "hello@aiblueprint.app";
 
 export default function TermsPage() {
   return (
-    <div className="pt-[60px] min-h-screen bg-white">
+    <div className="pt-[104px] min-h-screen bg-white">
       <div className="max-w-3xl mx-auto px-6 py-16">
         {/* Header */}
         <div className="mb-12">

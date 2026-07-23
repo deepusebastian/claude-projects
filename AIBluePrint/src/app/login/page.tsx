@@ -34,8 +34,8 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-6 pt-[100px] pb-16 bg-gray-50">
-      <div className="w-full max-w-[400px] bg-white border border-gray-200 rounded-2xl p-9 shadow-lg">
+    <div className="min-h-screen flex items-center justify-center px-4 sm:px-6 pt-[120px] pb-16 bg-gray-50">
+      <div className="w-full max-w-[400px] bg-white border border-gray-200 rounded-2xl p-6 sm:p-9 shadow-lg">
         <div className="text-center mb-7">
           <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-brand-500 to-blue-500 flex items-center justify-center text-white mx-auto mb-3.5">
             <Sparkles size={22} />
@@ -65,7 +65,7 @@ export default function LoginPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full px-3.5 py-2.5 rounded-lg text-sm bg-white border border-gray-200 text-gray-900 outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-100 transition-all"
+              className="w-full px-3.5 py-3 rounded-lg text-[16px] sm:text-sm bg-white border border-gray-200 text-gray-900 outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-100 transition-all"
             />
           </div>
           <div className="mb-6">
@@ -78,7 +78,7 @@ export default function LoginPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="w-full px-3.5 py-2.5 rounded-lg text-sm bg-white border border-gray-200 text-gray-900 outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-100 transition-all"
+              className="w-full px-3.5 py-3 rounded-lg text-[16px] sm:text-sm bg-white border border-gray-200 text-gray-900 outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-100 transition-all"
             />
           </div>
 

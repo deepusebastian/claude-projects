@@ -245,7 +245,7 @@ export default function BuilderClient() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col pt-[76px] pb-6 px-6 max-w-[860px] mx-auto">
+    <div className="min-h-screen flex flex-col pt-[104px] pb-6 px-4 sm:px-6 max-w-[860px] mx-auto">
       <PaywallModal isOpen={showPaywall} onClose={() => setShowPaywall(false)} />
 
       {paymentBanner === "success" && (
@@ -418,7 +418,7 @@ export default function BuilderClient() {
             }}
             placeholder="Describe your idea, business, or problem..."
             rows={2}
-            className="flex-1 resize-none bg-transparent border-none text-gray-900 text-sm leading-relaxed outline-none placeholder:text-gray-400"
+            className="flex-1 resize-none bg-transparent border-none text-gray-900 text-[16px] sm:text-sm leading-relaxed outline-none placeholder:text-gray-400"
           />
           <Button size="sm" onClick={handleSend} disabled={!input.trim() || isTyping}>
             <Send size={16} />

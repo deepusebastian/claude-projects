@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 
 export default function ModelsPage() {
   return (
-    <div className="pt-[60px] min-h-screen bg-white">
+    <div className="pt-[104px] min-h-screen bg-white">
       {/* Header */}
       <div className="border-b border-gray-100">
         <div className="max-w-6xl mx-auto px-6 py-10 md:py-14">
