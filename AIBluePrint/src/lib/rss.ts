@@ -32,28 +32,10 @@ export const DEFAULT_FEEDS: FeedSource[] = [
     icon: "HN",
   },
   {
-    name: "TechCrunch AI",
-    url: "https://techcrunch.com/category/artificial-intelligence/feed/",
-    category: "Industry",
-    icon: "TC",
-  },
-  {
     name: "The Verge AI",
     url: "https://www.theverge.com/rss/ai-artificial-intelligence/index.xml",
     category: "Industry",
     icon: "TV",
-  },
-  {
-    name: "OpenAI Blog",
-    url: "https://openai.com/blog/rss.xml",
-    category: "New Launch",
-    icon: "OA",
-  },
-  {
-    name: "Anthropic News",
-    url: "https://www.anthropic.com/rss.xml",
-    category: "New Launch",
-    icon: "AN",
   },
   {
     name: "Google AI Blog",
@@ -68,8 +50,20 @@ export const DEFAULT_FEEDS: FeedSource[] = [
     icon: "MT",
   },
   {
-    name: "Ars Technica",
-    url: "https://feeds.arstechnica.com/arstechnica/features",
+    name: "VentureBeat AI",
+    url: "https://venturebeat.com/category/ai/feed/",
+    category: "Industry",
+    icon: "VB",
+  },
+  {
+    name: "Google News AI",
+    url: "https://news.google.com/rss/search?q=artificial+intelligence+OR+LLM+OR+Claude+OR+OpenAI&hl=en-US&gl=US&ceid=US:en",
+    category: "Industry",
+    icon: "GN",
+  },
+  {
+    name: "Ars Technica AI",
+    url: "https://feeds.arstechnica.com/arstechnica/technology-lab",
     category: "Industry",
     icon: "AT",
   },
@@ -215,7 +209,7 @@ function parseRSSItems(xml: string): ParsedItem[] {
 
 async function fetchFeed(
   source: FeedSource,
-  timeoutMs = 8000
+  timeoutMs = 5000
 ): Promise<FeedItem[]> {
   try {
     const controller = new AbortController();

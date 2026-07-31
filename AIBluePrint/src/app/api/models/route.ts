@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { STATIC_MODELS, type LLMModel, type QualityTier } from "@/data/llm-models";
 
-export const dynamic = "force-dynamic";
+// Cache for 6 hours; the cron job at /api/cron/refresh-news keeps it warm.
+export const revalidate = 21600;
 
 // Known model IDs we care about (maps OpenRouter ID patterns to our display names)
 const KNOWN_PROVIDERS: Record<string, { name: string; color: string }> = {
