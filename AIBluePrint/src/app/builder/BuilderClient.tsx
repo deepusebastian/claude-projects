@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 import Button from "@/components/Button";
 import PipelineCard from "@/components/PipelineCard";
+import ConsultingModal from "@/components/ConsultingModal";
 import {
   PIPELINE_SCENARIOS,
   SUGGESTION_CHIPS,
@@ -38,6 +39,7 @@ export default function BuilderClient() {
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [hydrated, setHydrated] = useState(false);
+  const [showConsulting, setShowConsulting] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   // ─── Hydrate from localStorage — user-scoped ──────────────────────────────
@@ -123,6 +125,8 @@ export default function BuilderClient() {
         return next;
       });
       setIsTyping(false);
+      // Show consulting modal after every pipeline generation
+      setTimeout(() => setShowConsulting(true), 800);
     }, 2200);
   }
 
@@ -132,6 +136,9 @@ export default function BuilderClient() {
 
   return (
     <div className="min-h-screen flex flex-col pt-[104px] pb-6 px-4 sm:px-6 max-w-[860px] mx-auto">
+      {showConsulting && (
+        <ConsultingModal onClose={() => setShowConsulting(false)} />
+      )}
       <div className="text-center py-4 pb-7">
         <h1 className="text-[26px] font-bold text-gray-900 mb-1.5">
           Pipeline Builder

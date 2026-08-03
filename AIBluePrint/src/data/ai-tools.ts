@@ -140,6 +140,24 @@ export const AI_TOOLS: Record<string, AITool> = {
   },
 
   // ─── Video Generation ───
+  "Sora": {
+    name: "Sora",
+    color: "#10a37f",
+    letter: "S",
+    category: "Video",
+    description: "OpenAI's text-to-video model with cinematic quality and scene understanding",
+    differentiator: "Best prompt-to-video coherence with complex scene and physics rendering",
+    url: "https://sora.com",
+  },
+  "Veo": {
+    name: "Veo",
+    color: "#4285f4",
+    letter: "V",
+    category: "Video",
+    description: "Google's flagship video generation model with native YouTube integration",
+    differentiator: "Native Google ecosystem integration with strong temporal consistency",
+    url: "https://deepmind.google/models/veo",
+  },
   "Runway": {
     name: "Runway",
     color: "#e11d48",
@@ -274,6 +292,42 @@ export const AI_TOOLS: Record<string, AITool> = {
   },
 
   // ─── Code ───
+  "Devin": {
+    name: "Devin",
+    color: "#6366f1",
+    letter: "D",
+    category: "Code",
+    description: "Fully autonomous AI software engineer with browser, terminal, and editor",
+    differentiator: "Plans, writes, tests, and submits PRs autonomously in its own cloud sandbox",
+    url: "https://devin.ai",
+  },
+  "Lovable": {
+    name: "Lovable",
+    color: "#e11d48",
+    letter: "L",
+    category: "Code",
+    description: "AI that converts designs and prompts into functional full-stack apps",
+    differentiator: "Fastest path from idea to deployed app, no coding required",
+    url: "https://lovable.dev",
+  },
+  "v0": {
+    name: "v0",
+    color: "#171717",
+    letter: "V",
+    category: "Code",
+    description: "Vercel's AI UI generator that outputs production-ready React components",
+    differentiator: "Best for generating polished UI components that slot into existing stacks",
+    url: "https://v0.dev",
+  },
+  "Bolt": {
+    name: "Bolt",
+    color: "#1a1a2e",
+    letter: "B",
+    category: "Code",
+    description: "In-browser AI coding environment with real-time preview and instant deploy",
+    differentiator: "Watch code write itself live; outputs portable standard React/Vite",
+    url: "https://bolt.new",
+  },
   "GitHub Copilot": {
     name: "GitHub Copilot",
     color: "#171717",
@@ -300,6 +354,44 @@ export const AI_TOOLS: Record<string, AITool> = {
     description: "AI-powered cloud IDE with instant deployment",
     differentiator: "Zero-setup environment with one-click deploy",
     url: "https://replit.com",
+  },
+
+  // ─── Meeting AI ───
+  "Fathom": {
+    name: "Fathom",
+    color: "#7c3aed",
+    letter: "F",
+    category: "Meeting AI",
+    description: "AI meeting recorder with unlimited free storage and 30-second post-call summaries",
+    differentiator: "Highest-rated notetaker (5.0/5 G2), free unlimited recordings with instant summaries",
+    url: "https://fathom.video",
+  },
+  "Fireflies.ai": {
+    name: "Fireflies.ai",
+    color: "#7c3aed",
+    letter: "F",
+    category: "Meeting AI",
+    description: "AI meeting assistant with team collaboration and CRM integrations",
+    differentiator: "Best for teams — searchable meeting library with Salesforce/HubSpot sync",
+    url: "https://fireflies.ai",
+  },
+  "Granola": {
+    name: "Granola",
+    color: "#16a34a",
+    letter: "G",
+    category: "Meeting AI",
+    description: "Privacy-first AI notetaker that captures system audio locally, no bot required",
+    differentiator: "No meeting bot, no recording prompt — works silently on your Mac",
+    url: "https://granola.so",
+  },
+  "Otter.ai": {
+    name: "Otter.ai",
+    color: "#0ea5e9",
+    letter: "O",
+    category: "Meeting AI",
+    description: "Real-time AI transcription and meeting notes with collaboration features",
+    differentiator: "Best real-time live transcription with speaker identification",
+    url: "https://otter.ai",
   },
 
   // ─── Frameworks ───
@@ -340,6 +432,35 @@ export const AI_TOOLS: Record<string, AITool> = {
     url: "https://learn.microsoft.com/en-us/semantic-kernel/overview",
   },
 
+  // ─── Voice Agents ───
+  "Vapi": {
+    name: "Vapi",
+    color: "#6366f1",
+    letter: "V",
+    category: "Voice Agents",
+    description: "Developer-first API for building real-time conversational voice agents",
+    differentiator: "Full control over model stack, sub-500ms latency, bring your own LLM",
+    url: "https://vapi.ai",
+  },
+  "Retell AI": {
+    name: "Retell AI",
+    color: "#059669",
+    letter: "R",
+    category: "Voice Agents",
+    description: "Platform for building and deploying human-like voice AI agents at scale",
+    differentiator: "Best for pre-launch testing with built-in call simulation and analytics",
+    url: "https://retellai.com",
+  },
+  "Bland AI": {
+    name: "Bland AI",
+    color: "#1d4ed8",
+    letter: "B",
+    category: "Voice Agents",
+    description: "AI phone call platform for automated outbound and inbound calling",
+    differentiator: "Easiest setup for high-volume outbound call automation",
+    url: "https://bland.ai",
+  },
+
   // ─── Agents ───
   "CrewAI": {
     name: "CrewAI",
@@ -358,6 +479,25 @@ export const AI_TOOLS: Record<string, AITool> = {
     description: "Microsoft's multi-agent conversation framework",
     differentiator: "Enterprise-backed with human-in-the-loop support",
     url: "https://microsoft.github.io/autogen",
+  },
+
+  "Dify": {
+    name: "Dify",
+    color: "#2563eb",
+    letter: "D",
+    category: "Agents",
+    description: "Open-source LLM app development platform with visual agent builder",
+    differentiator: "Best open-source agent/workflow builder with self-hosting option",
+    url: "https://dify.ai",
+  },
+  "Flowise": {
+    name: "Flowise",
+    color: "#f59e0b",
+    letter: "F",
+    category: "Agents",
+    description: "No-code drag-and-drop builder for LLM flows and AI agents",
+    differentiator: "Simplest visual builder for chaining LLMs, tools, and memory",
+    url: "https://flowiseai.com",
   },
 
   // ─── Automation ───
@@ -427,6 +567,35 @@ export const AI_TOOLS: Record<string, AITool> = {
     url: "https://qdrant.tech",
   },
 
+  // ─── LLMOps / Observability ───
+  "LangSmith": {
+    name: "LangSmith",
+    color: "#2dd4bf",
+    letter: "L",
+    category: "LLMOps",
+    description: "Tracing, evaluation, and monitoring platform for LLM apps and agents",
+    differentiator: "Best-in-class agent tracing with deep LangChain integration",
+    url: "https://smith.langchain.com",
+  },
+  "Weights & Biases": {
+    name: "Weights & Biases",
+    color: "#fbbf24",
+    letter: "W",
+    category: "LLMOps",
+    description: "ML experiment tracking, model evaluation, and LLM observability",
+    differentiator: "Gold standard for experiment tracking with powerful eval dashboards",
+    url: "https://wandb.ai",
+  },
+  "Arize AI": {
+    name: "Arize AI",
+    color: "#7c3aed",
+    letter: "A",
+    category: "LLMOps",
+    description: "Production AI observability with drift detection and performance monitoring",
+    differentiator: "Best for catching model degradation and hallucinations in production",
+    url: "https://arize.com",
+  },
+
   // ─── Search / Scraping ───
   "Tavily": {
     name: "Tavily",
@@ -454,6 +623,28 @@ export const AI_TOOLS: Record<string, AITool> = {
     description: "Web scraping API converting pages to clean markdown",
     differentiator: "Handles JS-rendered pages, outputs LLM-ready markdown",
     url: "https://firecrawl.dev",
+  },
+
+  // ─── AI Search / Research ───
+  "Perplexity": {
+    name: "Perplexity",
+    color: "#20b8cd",
+    letter: "P",
+    category: "AI Search",
+    description: "AI-powered answer engine with real-time web search and cited sources",
+    differentiator: "Best for research — combines web search with AI reasoning and citations",
+    url: "https://perplexity.ai",
+  },
+
+  // ─── Presentation AI ───
+  "Gamma": {
+    name: "Gamma",
+    color: "#7c3aed",
+    letter: "G",
+    category: "Presentation AI",
+    description: "AI that generates polished decks, docs, and webpages from a prompt or notes",
+    differentiator: "Fastest way to go from notes to a shareable, beautifully formatted deck",
+    url: "https://gamma.app",
   },
 
   // ─── Support AI ───
@@ -635,18 +826,23 @@ export const ALL_CATEGORIES = [
   "Image Gen",
   "Video",
   "Voice",
+  "Voice Agents",
   "Music",
   "Transcription",
+  "Meeting AI",
   "Code",
   "Framework",
   "Agents",
   "Automation",
   "Vector DB",
+  "LLMOps",
   "Search API",
+  "AI Search",
   "Scraping",
   "Support AI",
   "Marketing AI",
   "SEO",
+  "Presentation AI",
   "Knowledge",
   "Enterprise Search",
   "MLOps",
