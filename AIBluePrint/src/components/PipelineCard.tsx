@@ -4,7 +4,7 @@ import { Pipeline } from "@/data/pipelines";
 import { AI_TOOLS } from "@/data/ai-tools";
 import ToolLogo from "./ToolLogo";
 import Button from "./Button";
-import { Download, ArrowRight, Lightbulb, Check } from "lucide-react";
+import { Download, ArrowRight, Lightbulb, Check, Sparkles } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -12,9 +12,10 @@ import jsPDF from "jspdf";
 
 interface PipelineCardProps {
   pipeline: Pipeline;
+  onHelpBuild?: () => void;
 }
 
-export default function PipelineCard({ pipeline }: PipelineCardProps) {
+export default function PipelineCard({ pipeline, onHelpBuild }: PipelineCardProps) {
   const { data: session } = useSession();
   const router = useRouter();
   const [expandedStep, setExpandedStep] = useState<number | null>(null);
@@ -223,7 +224,7 @@ export default function PipelineCard({ pipeline }: PipelineCardProps) {
       </div>
 
       {/* Actions */}
-      <div className="px-4 sm:px-6 py-3.5 flex gap-2.5 justify-end border-t border-gray-100">
+      <div className="px-4 sm:px-6 py-3.5 flex gap-2.5 justify-end border-t border-gray-100 flex-wrap">
         <Button variant="secondary" size="sm" onClick={handleExportPDF}>
           <Download size={14} /> Export PDF
         </Button>
@@ -235,6 +236,11 @@ export default function PipelineCard({ pipeline }: PipelineCardProps) {
           <Button size="sm" onClick={handleSave} disabled={saving}>
             {saving ? "Saving..." : "Save Blueprint"}{" "}
             <ArrowRight size={14} />
+          </Button>
+        )}
+        {onHelpBuild && (
+          <Button size="sm" onClick={onHelpBuild}>
+            <Sparkles size={14} /> Help Me Build This
           </Button>
         )}
       </div>

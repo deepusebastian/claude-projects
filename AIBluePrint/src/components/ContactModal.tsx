@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { X, Mail, CheckCircle, Lock } from "lucide-react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
 
 interface Props {
@@ -28,6 +30,18 @@ const BUDGET_OPTIONS = [
 export default function ContactModal({ onClose }: Props) {
   const { data: session, status } = useSession();
   const isLoggedIn = status === "authenticated" && !!session;
+  const pathname = usePathname();
+  const [mounted, setMounted] = useState(false);
+  const initialPathname = useRef(pathname);
+
+  useEffect(() => { setMounted(true); }, []);
+
+  // Close only when the route actually changes away from the page it was opened on
+  useEffect(() => {
+    if (pathname !== initialPathname.current) {
+      onClose();
+    }
+  }, [pathname]);
 
   const [form, setForm] = useState({
     name: "",
@@ -84,9 +98,11 @@ export default function ContactModal({ onClose }: Props) {
     }
   }
 
-  return (
+  if (!mounted) return null;
+
+  return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
       style={{ background: "rgba(0,0,0,0.45)", backdropFilter: "blur(4px)" }}
     >
       <div className="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden">
@@ -145,12 +161,14 @@ export default function ContactModal({ onClose }: Props) {
               <div className="flex gap-2.5 w-full max-w-xs">
                 <Link
                   href="/signup"
+                  onClick={onClose}
                   className="flex-1 text-center px-4 py-2.5 rounded-xl bg-gradient-to-br from-brand-500 to-blue-500 text-white text-sm font-semibold hover:opacity-90 transition-opacity shadow-sm"
                 >
                   Create account
                 </Link>
                 <Link
                   href="/login"
+                  onClick={onClose}
                   className="flex-1 text-center px-4 py-2.5 rounded-xl border border-gray-200 bg-white text-gray-700 text-sm font-semibold hover:border-gray-300 transition-colors"
                 >
                   Log in
@@ -302,6 +320,7 @@ export default function ContactModal({ onClose }: Props) {
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

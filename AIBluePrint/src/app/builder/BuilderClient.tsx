@@ -40,7 +40,15 @@ export default function BuilderClient() {
   const [isTyping, setIsTyping] = useState(false);
   const [hydrated, setHydrated] = useState(false);
   const [showConsulting, setShowConsulting] = useState(false);
+  const consultingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
+
+  // Clear any pending consulting timer on unmount
+  useEffect(() => {
+    return () => {
+      if (consultingTimerRef.current) clearTimeout(consultingTimerRef.current);
+    };
+  }, []);
 
   // ─── Hydrate from localStorage — user-scoped ──────────────────────────────
   useEffect(() => {
@@ -125,8 +133,8 @@ export default function BuilderClient() {
         return next;
       });
       setIsTyping(false);
-      // Show consulting modal after every pipeline generation
-      setTimeout(() => setShowConsulting(true), 800);
+      // Show consulting modal after user has had time to read the blueprint
+      consultingTimerRef.current = setTimeout(() => setShowConsulting(true), 25000);
     }, 2200);
   }
 
@@ -208,7 +216,16 @@ export default function BuilderClient() {
                 </div>
               </div>
             ) : (
-              <PipelineCard pipeline={msg.content as Pipeline} />
+              <PipelineCard
+                pipeline={msg.content as Pipeline}
+                onHelpBuild={() => {
+                  if (consultingTimerRef.current) {
+                    clearTimeout(consultingTimerRef.current);
+                    consultingTimerRef.current = null;
+                  }
+                  setShowConsulting(true);
+                }}
+              />
             )}
           </div>
         ))}
