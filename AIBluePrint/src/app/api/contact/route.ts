@@ -31,11 +31,11 @@ function isRateLimited(ip: string): boolean {
 
 function pruneStore() {
   const now = Date.now();
-  for (const [ip, entry] of ipStore.entries()) {
+  ipStore.forEach((entry, ip) => {
     if (now - entry.windowStart > RATE_LIMIT_WINDOW_MS) {
       ipStore.delete(ip);
     }
-  }
+  });
 }
 
 // ─── Handler ─────────────────────────────────────────────────────────────────
