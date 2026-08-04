@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
@@ -11,7 +12,9 @@ import {
   BookOpen,
   Newspaper,
   BarChart3,
+  Mail,
 } from "lucide-react";
+import ContactModal from "@/components/ContactModal";
 
 const NAV_LINKS = [
   { href: "/", label: "Builder", icon: <Zap size={15} /> },
@@ -23,9 +26,11 @@ const NAV_LINKS = [
 export default function Navbar() {
   const pathname = usePathname();
   const { data: session } = useSession();
+  const [showContact, setShowContact] = useState(false);
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-xl border-b border-gray-100">
+      {showContact && <ContactModal onClose={() => setShowContact(false)} />}
       {/* ── Row 1: Logo + Auth ── */}
       <div className="max-w-6xl mx-auto px-6 h-[60px] flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2.5 group">
@@ -97,6 +102,13 @@ export default function Navbar() {
               </Link>
             );
           })}
+          <button
+            onClick={() => setShowContact(true)}
+            className="flex items-center gap-1.5 px-4 sm:px-5 py-3 text-sm font-semibold whitespace-nowrap border-b-2 border-transparent text-gray-500 hover:text-gray-800 hover:border-gray-200 transition-colors"
+          >
+            <Mail size={15} />
+            Contact
+          </button>
         </div>
       </div>
     </nav>
